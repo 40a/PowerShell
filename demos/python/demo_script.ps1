@@ -38,7 +38,7 @@ $data = ./class1.py | ConvertFrom-JSON
 Write-Verbose "---  look at the first element of the returned array"
 $data[0]
 
-Write-Verbose "---  Look at the second"
+Write-Verbose "---  Look at the second (Strange behaviour starts here!)"
 $data[1]
 
 Write-Verbose "---  Get a specific element from the data"
