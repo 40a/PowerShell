@@ -50,7 +50,7 @@ cat class1.ps1
 Write-Verbose "---  And run it, treating the output as structured data."
 $X = (./class1)[1].buz[1]
 $X
-Write-Verbose "--- $X ---"
+Write-Verbose "--- Output of X is expected before this line (but is postponed!): $X ---"
 
 Write-Verbose "---  Finally a PowerShell script with in-line Python"
 cat inline_python.ps1
