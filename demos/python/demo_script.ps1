@@ -15,7 +15,7 @@ $data
 
 # Create a Python script using a PowerShell here-string, no extension
 @"
-#!/usr/bin/python3
+#!/usr/bin/env python3
 print('Hi!')
 "@ | out-file -encoding ascii hi
 
