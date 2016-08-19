@@ -1,61 +1,61 @@
-#
-# Demo simple interoperation between PowerShell and Python
+$VerbosePreference = "continue"
+Write-Verbose "--- "
+Write-Verbose "---  Demo simple interoperation between PowerShell and Python"
 
-# Basic execution of a Python script fragment
+Write-Verbose "---  Basic execution of a Python script fragment"
 python -c "print('Hi!')"
 
-# Capture output in a variable
+Write-Verbose "---  Capture output in a variable"
 $data = python -c "print('Hi!')"
 
-# And show the data
+Write-Verbose "---  And show the data"
 $data
 
-# Use in expressions
+Write-Verbose "---  Use in expressions"
 5 + (python -c "print(2 + 3)") + 7
 
-# Create a Python script using a PowerShell here-string, no extension
+Write-Verbose "---  Create a Python script using a PowerShell here-string, no extension"
 @"
 #!/usr/bin/env python3
 print('Hi!')
 "@ | out-file -encoding ascii hi
 
-# Make it executable
+Write-Verbose "---  Make it executable"
 chmod +x hi
 
-# Run it - shows that PowerShell really is a shell
+Write-Verbose "---  Run it - shows that PowerShell really is a shell"
 ./hi
 
-# A more complex script that outputs JSON
+Write-Verbose "---  A more complex script that outputs JSON"
 cat class1.py
 
-# Run the script
+Write-Verbose "---  Run the script"
 ./class1.py
 
-# Capture the data as structured objects (arrays and hashtables)
+Write-Verbose "---  Capture the data as structured objects (arrays and hashtables)"
 $data = ./class1.py | ConvertFrom-JSON
 
-# look at the first element of the returned array
+Write-Verbose "---  look at the first element of the returned array"
 $data[0]
 
-# Look at the second
+Write-Verbose "---  Look at the second"
 $data[1]
 
-# Get a specific element from the data
+Write-Verbose "---  Get a specific element from the data"
 $data[1].buz[1]
 
-# Finally wrap it all up so it looks like a simple PowerShell command
+Write-Verbose "---  Finally wrap it all up so it looks like a simple PowerShell command"
 cat class1.ps1
 
-# And run it, treating the output as structured data.
+Write-Verbose "---  And run it, treating the output as structured data."
 (./class1)[1].buz[1]
 
-# Finally a PowerShell script with in-line Python
+Write-Verbose "---  Finally a PowerShell script with in-line Python"
 cat inline_python.ps1
 
-# and run it
+Write-Verbose "---  and run it"
 ./inline_python
 
 
-####################################
-# cleanup
+Write-Verbose "---  cleanup"
 rm hi
