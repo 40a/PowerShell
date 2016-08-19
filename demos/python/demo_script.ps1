@@ -55,7 +55,7 @@ Write-Verbose "--- Output of X is expected before this line (but is postponed!):
 Write-Verbose "---  Finally a PowerShell script with in-line Python"
 cat inline_python.ps1
 
-Write-Verbose "---  and run it"
+Write-Verbose "---  and run it... Look ma - here goes postponet output!"
 ./inline_python
 
 
