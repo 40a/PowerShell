@@ -48,7 +48,9 @@ Write-Verbose "---  Finally wrap it all up so it looks like a simple PowerShell 
 cat class1.ps1
 
 Write-Verbose "---  And run it, treating the output as structured data."
-(./class1)[1].buz[1]
+$X = (./class1)[1].buz[1]
+$X
+Write-Verbose "--- $X ---"
 
 Write-Verbose "---  Finally a PowerShell script with in-line Python"
 cat inline_python.ps1
