@@ -1,5 +1,5 @@
 $VerbosePreference = "continue"
-Write-Verbose "--- "
+
 Write-Verbose "---  Demo simple interoperation between PowerShell and Python"
 
 Write-Verbose "---  Basic execution of a Python script fragment"
