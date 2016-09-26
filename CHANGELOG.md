@@ -4,6 +4,18 @@ Changelog
 Unreleased
 ----------
 
+v6.0.0-alpha.10 - 2016-09-15
+----------------------------
+- Fix passing escaped double quoted spaces to native executables
+- Add Dockerfiles to build each Linux distribution
+- `~/.config/PowerShell` capitalization bug fixed
+- Fix crash on Windows 7
+- Fix remote debugging on Windows client
+- Fix multi-line input with redirected stdin
+- Add PowerShell to `/etc/shells` on installation
+- Fix `Install-Module` version comparison bug
+- Spelling fixes
+
 v6.0.0-alpha.9 - 2016-08-15
 ---------------------------
 
@@ -14,7 +26,7 @@ v6.0.0-alpha.9 - 2016-08-15
 v6.0.0-alpha.8 - 2016-08-11
 ---------------------------
 
-- PowerSell packages pre-compiled with CrossGen
+- PowerShell packages pre-compiled with CrossGen
 - `Get-Help` content added
 - `Get-Help` null reference exception fixed
 - Ubuntu 16.04 support added
@@ -51,7 +63,7 @@ v6.0.0-alpha.7 - 2016-07-26
 - ConvertFrom-Json multi-line bug fixed
 - Execution policies fixed on Windows
 - TimeZone cmdlets added back; excluded from Linux
-- FileCatalog cmdlets add back for Windows
+- FileCatalog cmdlets added back for Windows
 - Get-ComputerInfo cmdlet added back for Windows
 
 v0.6.0 - 2016-07-08

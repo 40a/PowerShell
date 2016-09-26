@@ -66,13 +66,17 @@ namespace System.Management.Automation
         private string _commandName;
         private List<string> _parameterDescriptions;
         private XmlDocument _doc;
+        internal static readonly string mshURI = "http://msh";
         internal static readonly string mamlURI = "http://schemas.microsoft.com/maml/2004/10";
         internal static readonly string commandURI = "http://schemas.microsoft.com/maml/dev/command/2004/10";
         internal static readonly string devURI = "http://schemas.microsoft.com/maml/dev/2004/10";
         private const string directive = @"^\s*\.(\w+)(\s+(\S.*))?\s*$";
         private const string blankline = @"^\s*$";
+        // Although "http://msh" is the default namespace, it still must be explicitly qualified with non-empty prefix,
+        // because XPath 1.0 will associate empty prefix with "null" namespace (not with "default") and query will fail.
+        // See: http://www.w3.org/TR/1999/REC-xpath-19991116/#node-tests
         internal static readonly string ProviderHelpCommandXPath =
-            "/helpItems/providerHelp/CmdletHelpPaths/CmdletHelpPath{0}/command:command[command:details/command:verb='{1}' and command:details/command:noun='{2}']";
+            "/msh:helpItems/msh:providerHelp/msh:CmdletHelpPaths/msh:CmdletHelpPath{0}/command:command[command:details/command:verb='{1}' and command:details/command:noun='{2}']";
 
         private void DetermineParameterDescriptions()
         {
@@ -1140,7 +1144,7 @@ namespace System.Management.Automation
                 }
 
                 // comment block is behind function definition
-                // we don't suport it for configuration delaration as this style is rarely used
+                // we don't support it for configuration declaration as this style is rarely used
                 if (funcDefnAst != null)
                 {
                     startTokenIndex =

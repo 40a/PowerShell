@@ -17,7 +17,7 @@ namespace Microsoft.PowerShell.Commands
     [Cmdlet(VerbsCommon.New, "LocalUser",
             DefaultParameterSetName = "Password",
             SupportsShouldProcess = true,
-            HelpUri = "http://go.microsoft.com/fwlink/?LinkId=717981")]
+            HelpUri = "https://go.microsoft.com/fwlink/?LinkId=717981")]
     [Alias("nlu")]
     public class NewLocalUserCommand : PSCmdlet
     {
@@ -67,11 +67,10 @@ namespace Microsoft.PowerShell.Commands
 
         /// <summary>
         /// The following is the definition of the input parameter "Description".
-        /// A descriptive comment for this user account (48 characters).
+        /// A descriptive comment for this user account.
         /// </summary>
         [Parameter(ValueFromPipelineByPropertyName = true)]
         [ValidateNotNull]
-        [ValidateLength(0, 48)]
         public string Description
         {
             get { return this.description;}

@@ -63,7 +63,7 @@ namespace Microsoft.PackageManagement.Internal.Utility.Plugin
             il.LoadThis();
             il.LoadField(implementedMethodsField);
             il.LoadArgument(1);
-            il.CallVirutal(typeof(HashSet<string>).GetMethod("Contains"));
+            il.CallVirtual(typeof(HashSet<string>).GetMethod("Contains"));
             il.Return();
         }
 
@@ -112,7 +112,7 @@ namespace Microsoft.PackageManagement.Internal.Utility.Plugin
             }
 
             // call the actual method implementation
-            il.CallVirutal(instanceMethod);
+            il.CallVirtual(instanceMethod);
 
             if (hasReturn)
             {
@@ -138,7 +138,7 @@ namespace Microsoft.PackageManagement.Internal.Utility.Plugin
                 // this method isn't returning anything.
                 if (instanceMethod.ReturnType != typeof(void))
                 {
-                    // pop the return value beacuse the generated method is void and the
+                    // pop the return value because the generated method is void and the
                     // method we called actually gave us a result.
                     il.Emit(OpCodes.Pop);
                 }
@@ -206,7 +206,7 @@ namespace Microsoft.PackageManagement.Internal.Utility.Plugin
             {
                 il.LoadArgument(i + 1);
             }
-            il.CallVirutal(delegateType.GetMethod("Invoke"));
+            il.CallVirtual(delegateType.GetMethod("Invoke"));
             il.Return();
         }
 

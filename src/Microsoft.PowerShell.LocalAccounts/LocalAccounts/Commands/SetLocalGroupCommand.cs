@@ -17,7 +17,7 @@ namespace Microsoft.PowerShell.Commands
     /// </summary>
     [Cmdlet(VerbsCommon.Set, "LocalGroup",
             SupportsShouldProcess = true,
-            HelpUri = "http://go.microsoft.com/fwlink/?LinkId=717979")]
+            HelpUri = "https://go.microsoft.com/fwlink/?LinkId=717979")]
     [Alias("slg")]
     public class SetLocalGroupCommand : Cmdlet
     {
@@ -28,11 +28,10 @@ namespace Microsoft.PowerShell.Commands
         #region Parameter Properties
         /// <summary>
         /// The following is the definition of the input parameter "Description".
-        /// A descriptive comment (48 characters).
+        /// A descriptive comment.
         /// </summary>
         [Parameter(Mandatory = true)]
         [ValidateNotNull]
-        [ValidateLength(0, 48)]
         public string Description
         {
             get { return this.description;}

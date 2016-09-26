@@ -1,10 +1,10 @@
-Build PowerShell on OS X
+Build PowerShell on macOS
 ========================
 
 This guide supplements the [Linux instructions](./linux.md), as
-building on OS X is almost identical.
+building on macOS is almost identical.
 
-.NET Core (and by transitivity, us) only supports OS X 10.11, per
+.NET Core (and by transitivity, us) only supports macOS 10.11, per
 CoreFX issue #[7731][].
 
 [7731]: https://github.com/dotnet/corefx/issues/7731
@@ -12,17 +12,16 @@ CoreFX issue #[7731][].
 Environment
 ===========
 
-You will want [Homebrew](http://brew.sh/), the missing package manager for OS X.
+You will want [Homebrew](http://brew.sh/), the missing package manager for macOS.
 Once installed, follow the same instructions to download and
-install a self-hosted copy of PowerShell on your OS X machine,
+install a self-hosted copy of PowerShell on your macOS machine,
 and use`Start-PSBootstrap` to install the dependencies.
 
 The `Start-PSBootstrap` function does the following:
 
 - Uses `brew` to install CMake, OpenSSL, and GNU WGet
-- Links OpenSSL
 - Uninstalls any prior versions of .NET CLI
-- Downloads and installs the latest .NET CLI 1.0.0-preview2 SDK to `~/.dotnet`
+- Downloads and installs the latest .NET CLI 1.0.0-preview3 SDK to `~/.dotnet`
 
 If you want to use `dotnet` outside of `Start-PSBuild`,
 add `~/.dotnet` to your `PATH` environment variable.
@@ -40,7 +39,7 @@ We cannot do this for you in the build module due to #[847][].
 [847]: https://github.com/PowerShell/PowerShell/issues/847
 
 error: dotnet restore
--------------------------
+---------------------
 
 If you run `dotnet restore` and get error like
 
@@ -55,18 +54,11 @@ error:   The type initializer for 'Crypto' threw an exception.
 error:   The type initializer for 'CryptoInitializer' threw an exception.
 error:   Unable to load DLL 'System.Security.Cryptography.Native': The specified module could not be found.
 error:    (Exception from HRESULT: 0x8007007E)
-
 ```
 
-Try the following
-
-* Make sure you have latest openssl and re-link it
-
-```
-brew update
-brew install openssl
-brew link --force openssl
-```
+These means you did not use our `Start-PSBootstrap` function to setup your environment,
+which handles patching .NET Core's bad cryptography libraries.
+Please see our [macOS installation instructions](../installation/linux.md#openssl) for explanation.
 
 Build using our module
 ======================

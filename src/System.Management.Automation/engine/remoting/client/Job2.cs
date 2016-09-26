@@ -45,7 +45,7 @@ namespace System.Management.Automation
     /// <remarks>The following are some of the notes about
     /// why the asynchronous operations are provided this way
     /// in this class. There are two possible options in which
-    /// asynchornous support can be provided:
+    /// asynchronous support can be provided:
     ///     1. Classical pattern (Begin and End)
     ///     2. Event based pattern
     ///     
@@ -212,7 +212,7 @@ namespace System.Management.Automation
         /// start a job. The job will be started with the parameters
         /// specified in StartParameters
         /// </summary>
-        /// <remarks>It is redudant to have a method named StartJob
+        /// <remarks>It is redundant to have a method named StartJob
         /// on a job class. However, this is done so as to avoid
         /// an FxCop violation "CA1716:IdentifiersShouldNotMatchKeywords"
         /// Stop and Resume are reserved keyworks in C# and hence cannot
@@ -257,7 +257,7 @@ namespace System.Management.Automation
         }
 
         /// <summary>
-        /// Method which can be exteded or called by derived 
+        /// Method which can be extended or called by derived 
         /// classes to raise the event when suspending a 
         /// job is completed
         /// </summary>
@@ -801,7 +801,7 @@ namespace System.Management.Automation
                 catch (Exception e)
                 {
                     // These exceptions are thrown by third party code. Adding them here to the collection
-                    // of execution errors to present consistant behavior of the object.
+                    // of execution errors to present consistent behavior of the object.
 
                     ExecutionError.Add(new ErrorRecord(e, "ContainerParentJobStartError",
                                                        ErrorCategory.InvalidResult, child));
@@ -827,7 +827,7 @@ namespace System.Management.Automation
                 {
                     ExecutionError.Add(
                         new ErrorRecord(e.Error,
-                                        "ConainerParentJobStartError",
+                                        "ContainerParentJobStartError",
                                         ErrorCategory.
                                             InvalidResult,
                                         childJob));
@@ -873,9 +873,9 @@ namespace System.Management.Automation
                 // Check to see expected behavior if one child job fails to start.
             } 
 
-            if (ExcecutionError.Count == 1)
+            if (ExecutionError.Count == 1)
             {
-                throw ExcecutionError[0];
+                throw ExecutionError[0];
             } */
             _tracer.WriteMessage(TraceClassName, "StartJob", Guid.Empty, this, "Exiting method", null);
         }
@@ -911,7 +911,7 @@ namespace System.Management.Automation
                      "Finished starting child job asynchronously, child InstanceId: {0}", childJob.InstanceId.ToString());
                  if (e.Error != null)
                  {
-                     ExecutionError.Add(new ErrorRecord(e.Error, "ConainerParentJobStartAsyncError",
+                     ExecutionError.Add(new ErrorRecord(e.Error, "ContainerParentJobStartAsyncError",
                          ErrorCategory.InvalidResult, childJob));
                      _tracer.WriteMessage(TraceClassName, "StartJobAsync-Handler", Guid.Empty, this,
                         "Child job asynchronously had error, child InstanceId: {0}", childJob.InstanceId.ToString());
@@ -985,7 +985,7 @@ namespace System.Management.Automation
                 catch (Exception e)
                 {
                     // These exceptions are thrown by third party code. Adding them here to the collection
-                    // of execution errors to present consistant behavior of the object.
+                    // of execution errors to present consistent behavior of the object.
 
                     ExecutionError.Add(new ErrorRecord(e, "ContainerParentJobResumeError",
                                                        ErrorCategory.InvalidResult, child));
@@ -1221,7 +1221,7 @@ namespace System.Management.Automation
                 catch (Exception e)
                 {
                     // These exceptions are thrown by third party code. Adding them here to the collection
-                    // of execution errors to present consistant behavior of the object.
+                    // of execution errors to present consistent behavior of the object.
 
                     ExecutionError.Add(new ErrorRecord(e, "ContainerParentJobUnblockError",
                         ErrorCategory.InvalidResult, child));
@@ -1249,7 +1249,7 @@ namespace System.Management.Automation
                                                 "Finished unblock child job asynchronously, child InstanceId: {0}", job.InstanceId.ToString());
                                             if (e.Error != null)
                                             {
-                                                ExecutionError.Add(new ErrorRecord(e.Error, "ConainerParentJobUnblockError",
+                                                ExecutionError.Add(new ErrorRecord(e.Error, "ContainerParentJobUnblockError",
                                                     ErrorCategory.InvalidResult, childJob));
                                                 _tracer.WriteMessage(TraceClassName, "UnblockJob-Handler", Guid.Empty, this,
                                                     "Child job asynchronously had error, child InstanceId: {0}", job.InstanceId.ToString());
@@ -1314,7 +1314,7 @@ namespace System.Management.Automation
                                                 "Finished unblock child job asynchronously, child InstanceId: {0}", job.InstanceId.ToString());
                                             if (e.Error != null)
                                             {
-                                                ExecutionError.Add(new ErrorRecord(e.Error, "ConainerParentJobUnblockError",
+                                                ExecutionError.Add(new ErrorRecord(e.Error, "ContainerParentJobUnblockError",
                                                     ErrorCategory.InvalidResult, childJob));
                                                 _tracer.WriteMessage(TraceClassName, "UnblockJobAsync-Handler", Guid.Empty, this,
                                                     "Child job asynchronously had error, child InstanceId: {0}", job.InstanceId.ToString());
@@ -1390,7 +1390,7 @@ namespace System.Management.Automation
                 catch (Exception e)
                 {
                     // These exceptions are thrown by third party code. Adding them here to the collection
-                    // of execution errors to present consistant behavior of the object.
+                    // of execution errors to present consistent behavior of the object.
 
                     ExecutionError.Add(new ErrorRecord(e, "ContainerParentJobSuspendError",
                                                        ErrorCategory.InvalidResult, child));
@@ -1563,7 +1563,7 @@ namespace System.Management.Automation
                 catch (Exception e)
                 {
                     // These exceptions are thrown by third party code. Adding them here to the collection
-                    // of execution errors to present consistant behavior of the object.
+                    // of execution errors to present consistent behavior of the object.
 
                     ExecutionError.Add(new ErrorRecord(e, "ContainerParentJobStopError",
                                                        ErrorCategory.InvalidResult, child));
@@ -1663,7 +1663,7 @@ namespace System.Management.Automation
                         "Finished stopping child job asynchronously, child InstanceId: {0}", job.InstanceId.ToString());
                     if (e.Error != null)
                     {
-                        ExecutionError.Add(new ErrorRecord(e.Error, "ConainerParentJobStopAsyncError",
+                        ExecutionError.Add(new ErrorRecord(e.Error, "ContainerParentJobStopAsyncError",
                             ErrorCategory.InvalidResult, childJob));
                         _tracer.WriteMessage(TraceClassName, "StopJobAsync-Handler", Guid.Empty, this,
                             "Child job asynchronously had error, child InstanceId: {0}", job.InstanceId.ToString());

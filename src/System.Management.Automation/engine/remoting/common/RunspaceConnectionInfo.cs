@@ -545,7 +545,7 @@ namespace System.Management.Automation.Runspaces
         }
 
         /// <summary>
-        /// AuthenticationMaechanism converted to WSManAuthenticationMechanism type.
+        /// AuthenticationMechanism converted to WSManAuthenticationMechanism type.
         /// This is internal.
         /// </summary>
         internal WSManAuthenticationMechanism WSManAuthenticationMechanism { get; private set; } = WSManAuthenticationMechanism.WSMAN_FLAG_DEFAULT_AUTHENTICATION;
@@ -654,7 +654,7 @@ namespace System.Management.Automation.Runspaces
                         _proxyAuthentication = value;
                         break;
                     default:
-                        string message = PSRemotingErrorInvariants.FormatResourceString(RemotingErrorIdStrings.ProxyAmbiguosAuthentication,
+                        string message = PSRemotingErrorInvariants.FormatResourceString(RemotingErrorIdStrings.ProxyAmbiguousAuthentication,
                             value,
                             AuthenticationMechanism.Basic.ToString(),
                             AuthenticationMechanism.Negotiate.ToString(),
@@ -709,7 +709,7 @@ namespace System.Management.Automation.Runspaces
 
         /// <summary>
         /// Specifies that no encryption will be used when doing remote operations over 
-        /// http. Unencrypted traffix is not allowed by default and must be enabled in 
+        /// http. Unencrypted traffic is not allowed by default and must be enabled in 
         /// the local configuration
         /// </summary>
         public bool NoEncryption { get; set; }
@@ -925,7 +925,7 @@ namespace System.Management.Automation.Runspaces
         /// default server life time and default open
         /// timeout
         /// </summary>
-        /// <param name="uri">uri of remote runspae</param>
+        /// <param name="uri">uri of remote runspace</param>
         /// <exception cref="ArgumentException">When an
         /// uri representing an invalid path is specified</exception>
         public WSManConnectionInfo(Uri uri)
@@ -1089,7 +1089,7 @@ namespace System.Management.Automation.Runspaces
 
         /// <summary>
         /// Converts <paramref name="rsCI"/> to a WSManConnectionInfo. If conversion succeeds extracts
-        /// the propery..otherwise returns default value
+        /// the property..otherwise returns default value
         /// </summary>
         /// <param name="rsCI"></param>
         /// <param name="property"></param>
@@ -1246,7 +1246,7 @@ namespace System.Management.Automation.Runspaces
         /// Used to resolve authentication from the parameters chosen by the user.
         /// User has the following options:
         /// 1. AuthMechanism + Credential
-        /// 2. CertiticateThumbPrint
+        /// 2. CertificateThumbPrint
         /// 
         /// All the above are mutually exclusive.
         /// </summary>
@@ -1258,7 +1258,7 @@ namespace System.Management.Automation.Runspaces
             if ((WSManAuthenticationMechanism != WSManAuthenticationMechanism.WSMAN_FLAG_DEFAULT_AUTHENTICATION)
                 && (_thumbPrint != null))
             {
-                throw PSTraceSource.NewInvalidOperationException(RemotingErrorIdStrings.NewRunspaceAmbiguosAuthentication,
+                throw PSTraceSource.NewInvalidOperationException(RemotingErrorIdStrings.NewRunspaceAmbiguousAuthentication,
                       "CertificateThumbPrint", this.AuthenticationMechanism.ToString());
             }
         }
@@ -1603,7 +1603,7 @@ namespace System.Management.Automation.Runspaces
         /// ThumbPrint of a certificate used for connecting to a remote machine.
         /// When this is specified, you dont need to supply credential and authentication
         /// mechanism.
-        /// Will always be empty to signfy that this is not supported.
+        /// Will always be empty to signify that this is not supported.
         /// </summary>
         public override string CertificateThumbprint
         {
@@ -1844,9 +1844,9 @@ namespace System.Management.Automation.Runspaces
         }
 
         /// <summary>
-        /// Key Path
+        /// Key File Path
         /// </summary>
-        private string KeyPath
+        private string KeyFilePath
         {
             get;
             set;
@@ -1867,18 +1867,18 @@ namespace System.Management.Automation.Runspaces
         /// </summary>
         /// <param name="userName">User Name</param>
         /// <param name="computerName">Computer Name</param>
-        /// <param name="keyPath">Key Path</param>
+        /// <param name="keyFilePath">Key File Path</param>
         public SSHConnectionInfo(
             string userName,
             string computerName,
-            string keyPath)
+            string keyFilePath)
         {
             if (userName == null) { throw new PSArgumentNullException("userName"); }
             if (computerName == null) { throw new PSArgumentNullException("computerName"); }
 
             this.UserName = userName;
             this.ComputerName = computerName;
-            this.KeyPath = keyPath;
+            this.KeyFilePath = keyFilePath;
         }
 
         #endregion
@@ -1930,7 +1930,7 @@ namespace System.Management.Automation.Runspaces
             SSHConnectionInfo newCopy = new SSHConnectionInfo();
             newCopy.ComputerName = this.ComputerName;
             newCopy.UserName = this.UserName;
-            newCopy.KeyPath = this.KeyPath;
+            newCopy.KeyFilePath = this.KeyFilePath;
 
             return newCopy;
         }
@@ -1996,11 +1996,17 @@ namespace System.Management.Automation.Runspaces
             //   See sshd_configuration file, subsystems section and it will have this entry:
             //     Subsystem       powershell C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -Version 5.1 -sshs -NoLogo -NoProfile
             string arguments;
-            if (!string.IsNullOrEmpty(this.KeyPath))
+            if (!string.IsNullOrEmpty(this.KeyFilePath))
             {
+                if (!System.IO.File.Exists(this.KeyFilePath))
+                {
+                    throw new FileNotFoundException(
+                        StringUtil.Format(RemotingErrorIdStrings.KeyFileNotFound, this.KeyFilePath));
+                }
+
                 arguments = (string.IsNullOrEmpty(domainName)) ?
-                    string.Format(CultureInfo.InvariantCulture, @"-i ""{0}"" {1}@{2} -s powershell", this.KeyPath, userName, this.ComputerName) :
-                    string.Format(CultureInfo.InvariantCulture, @"-i ""{0}"" -l {1}@{2} {3} -s powershell", this.KeyPath, userName, domainName, this.ComputerName);
+                    string.Format(CultureInfo.InvariantCulture, @"-i ""{0}"" {1}@{2} -s powershell", this.KeyFilePath, userName, this.ComputerName) :
+                    string.Format(CultureInfo.InvariantCulture, @"-i ""{0}"" -l {1}@{2} {3} -s powershell", this.KeyFilePath, userName, domainName, this.ComputerName);
             }
             else
             {
@@ -2056,7 +2062,7 @@ namespace System.Management.Automation.Runspaces
         /// <summary>
         /// Create a process through native Win32 APIs and return StdIn, StdOut, StdError reader/writers
         /// This needs to be done via Win32 APIs because managed code creates anonymous synchronous pipes 
-        /// for redirected StdIn/Out and SSH (and PSRP) require asynchrous (overlapped) pipes, which must
+        /// for redirected StdIn/Out and SSH (and PSRP) require asynchronous (overlapped) pipes, which must
         /// be through named pipes.  Managed code for named pipes is unreliable and so this is done via
         /// P-Invoking native APIs.
         /// </summary>
@@ -2094,7 +2100,9 @@ namespace System.Management.Automation.Runspaces
                 (sshProcess == null) ||
                 (sshProcess.HasExited == true))
             {
-                throw new InvalidOperationException(RemotingErrorIdStrings.CannotStartSSHClient, ex);
+                throw new InvalidOperationException(
+                    StringUtil.Format(RemotingErrorIdStrings.CannotStartSSHClient, (ex != null) ? ex.Message : string.Empty), 
+                    ex);
             }
 
             // Create the std in writer/readers needed for communication with ssh.exe.
@@ -2362,7 +2370,7 @@ namespace System.Management.Automation.Runspaces
         /// ThumbPrint of a certificate used for connecting to a remote machine.
         /// When this is specified, you dont need to supply credential and authentication
         /// mechanism.
-        /// Will always be null to signfy that this is not supported.
+        /// Will always be null to signify that this is not supported.
         /// </summary>
         public override string CertificateThumbprint
         {
@@ -2483,7 +2491,7 @@ namespace System.Management.Automation.Runspaces
         /// ThumbPrint of a certificate used for connecting to a remote machine.
         /// When this is specified, you dont need to supply credential and authentication
         /// mechanism.
-        /// Will always be null to signfy that this is not supported.
+        /// Will always be null to signify that this is not supported.
         /// </summary>
         public override string CertificateThumbprint
         {
@@ -2710,7 +2718,7 @@ namespace System.Management.Automation.Runspaces
             string processParameters,
             ref HCS_PROCESS_INFORMATION processInformation,
             ref IntPtr process,
-            ref string reslt);
+            ref string result);
 
         [DllImport(PinvokeDllNames.CreateProcessInComputeSystemDllName, SetLastError = true, CharSet = CharSet.Unicode)]
         internal static extern uint HcsOpenProcess(

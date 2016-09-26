@@ -43,7 +43,7 @@ function Start-PSBuild {
         [switch]$TypeGen,
         [switch]$Clean,
 
-        # this switch will re-build only System.Mangement.Automation.dll
+        # this switch will re-build only System.Management.Automation.dll
         # it's useful for development, to do a quick changes in the engine
         [switch]$SMAOnly,
 
@@ -222,6 +222,7 @@ function Start-PSBuild {
             # This is allowed to fail since the user may have already restored
             Write-Warning ".NET Core links the incorrect OpenSSL, correcting NuGet package libraries..."
             find $env:HOME/.nuget -name System.Security.Cryptography.Native.dylib | xargs sudo install_name_tool -add_rpath /usr/local/opt/openssl/lib
+            find $env:HOME/.nuget -name System.Net.Http.Native.dylib | xargs sudo install_name_tool -change /usr/lib/libcurl.4.dylib /usr/local/opt/curl/lib/libcurl.4.dylib
         }
     }
 
@@ -275,10 +276,10 @@ function Start-PSBuild {
                 $nativeResourcesFolder = $_
                 Get-ChildItem $nativeResourcesFolder -Filter "*.mc" | % {
                     $command = @"
-cmd.exe /C cd /d "$currentLocation" "&" "$($vcVarsPath)\vcvarsall.bat" "$NativeHostArch" "&" mc.exe -o -d -c -U $($_.FullName) -h "$nativeResourcesFolder" -r "$nativeResourcesFolder"
+cmd.exe /C cd /d "$currentLocation" "&" "$($vcVarsPath)\vcvarsall.bat" "$NativeHostArch" "&" mc.exe -o -d -c -U "$($_.FullName)" -h "$nativeResourcesFolder" -r "$nativeResourcesFolder"
 "@
                     log "  Executing mc.exe Command: $command"
-                    Start-NativeExecution { Invoke-Expression -Command:$command }
+                    Start-NativeExecution { Invoke-Expression -Command:$command 2>&1 }
                 }
             }
 
@@ -547,18 +548,38 @@ function Get-PesterTag {
     $o
 }
 
+function Publish-PSTestTools {
+    [CmdletBinding()]
+    param()
+
+    Find-Dotnet
+
+    # Publish EchoArgs so it can be run by tests
+    Push-Location "$PSScriptRoot/test/tools/EchoArgs"
+    try {
+        dotnet publish --output bin
+    } finally {
+        Pop-Location
+    }
+}
+
 function Start-PSPester {
-    [CmdletBinding()]param(
+    [CmdletBinding()]
+    param(
         [string]$OutputFormat = "NUnitXml",
         [string]$OutputFile = "pester-tests.xml",
-        [switch]$DisableExit,
         [string[]]$ExcludeTag = "Slow",
         [string[]]$Tag = "CI",
-        [string]$Path = "$PSScriptRoot/test/powershell"
+        [string]$Path = "$PSScriptRoot/test/powershell",
+        [switch]$ThrowOnFailure,
+        [switch]$FullCLR,
+        [string]$binDir = (Split-Path (New-PSOptions -FullCLR:$FullCLR).Output),
+        [string]$powershell = (Join-Path $binDir 'powershell'),
+        [string]$Pester = ([IO.Path]::Combine($binDir, "Modules", "Pester"))
     )
 
-    $powershell = Get-PSOutput
-
+    Write-Verbose "Running pester tests at '$path' with tag '$($Tag -join ''', ''')' and ExcludeTag '$($ExcludeTag -join ''', ''')'" -Verbose
+    Publish-PSTestTools
     # All concatenated commands/arguments are suffixed with the delimiter (space)
     $Command = ""
 
@@ -566,15 +587,15 @@ function Start-PSPester {
     if ($IsWindows) {
         $Command += "Set-ExecutionPolicy -Scope Process Unrestricted; "
     }
+    $startParams = @{binDir=$binDir}
 
-    $PesterModule = [IO.Path]::Combine((Split-Path $powershell), "Modules", "Pester")
-    $Command += "Import-Module $PesterModule; "
+    if(!$FullCLR)
+    {
+        $Command += "Import-Module '$Pester'; "
+    }
     $Command += "Invoke-Pester "
 
     $Command += "-OutputFormat ${OutputFormat} -OutputFile ${OutputFile} "
-    if (!$DisableExit) {
-        $Command += "-EnableExit "
-    }
     if ($ExcludeTag -and ($ExcludeTag -ne "")) {
         $Command += "-ExcludeTag @('" + (${ExcludeTag} -join "','") + "') "
     }
@@ -582,20 +603,49 @@ function Start-PSPester {
         $Command += "-Tag @('" + (${Tag} -join "','") + "') "
     }
 
-    $Command += $Path
-
+    $Command += "'" + $Path + "'"
+        
     Write-Verbose $Command
-    # To ensure proper testing, the module path must not be inherited by the spawned process
-    try {
-        $originalModulePath = $env:PSMODULEPATH
-        $env:PSMODULEPATH = ""
-        & $powershell -noprofile -c $Command
-    } finally {
-        $env:PSMODULEPATH = $originalModulePath
-    }
 
-    if ($LASTEXITCODE -ne 0) {
-        throw "$LASTEXITCODE Pester tests failed"
+    # To ensure proper testing, the module path must not be inherited by the spawned process
+    if($FullCLR)
+    {
+        Start-DevPowerShell -binDir $binDir -FullCLR -NoNewWindow -ArgumentList '-noprofile', '-noninteractive' -Command $command
+    }
+    else {
+        try {
+            $originalModulePath = $env:PSMODULEPATH
+            
+            & $powershell -noprofile -c $Command
+        } finally {
+            $env:PSMODULEPATH = $originalModulePath
+        }        
+    }
+    if($ThrowOnFailure)
+    {
+        Test-PSPesterResults -TestResultsFile $OutputFile
+    }
+}
+
+#
+# Read the test result file and
+# Throw if a test failed 
+function Test-PSPesterResults
+{
+    param(
+        [string]$TestResultsFile = "pester-tests.xml",
+        [string] $TestArea = 'test/powershell'
+    )
+
+    if(!(Test-Path $TestResultsFile))
+    {
+        throw "Test result file '$testResultsFile' not found for $TestArea."
+    } 
+
+    $x = [xml](Get-Content -raw $testResultsFile)
+    if ([int]$x.'test-results'.failures -gt 0)
+    {
+        throw "$($x.'test-results'.failures) tests in $TestArea failed"
     }
 }
 
@@ -646,15 +696,70 @@ function Start-PSxUnit {
 }
 
 
+function Install-Dotnet {
+    [CmdletBinding()]
+    param(
+        [string]$Channel = "rel-1.0.0",
+        [string]$Version = "latest",
+        [switch]$NoSudo
+    )
+
+    # This allows sudo install to be optional; needed when running in containers / as root
+    # Note that when it is null, Invoke-Expression (but not &) must be used to interpolate properly
+    $sudo = if (!$NoSudo) { "sudo" }
+
+    $obtainUrl = "https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0/scripts/obtain"
+
+    # Install for Linux and OS X
+    if ($IsLinux -or $IsOSX) {
+        # Uninstall all previous dotnet packages
+        $uninstallScript = if ($IsUbuntu) {
+            "dotnet-uninstall-debian-packages.sh"
+        } elseif ($IsOSX) {
+            "dotnet-uninstall-pkgs.sh"
+        }
+
+        if ($uninstallScript) {
+            Start-NativeExecution {
+                curl -sO $obtainUrl/uninstall/$uninstallScript
+                Invoke-Expression "$sudo bash ./$uninstallScript"
+            }
+        } else {
+            Write-Warning "This script only removes prior versions of dotnet for Ubuntu 14.04 and OS X"
+        }
+
+        # Install new dotnet 1.0.0 preview packages
+        $installScript = "dotnet-install.sh"
+        Start-NativeExecution {
+            curl -sO $obtainUrl/$installScript
+            bash ./$installScript -c $Channel -v $Version
+        }
+
+        # .NET Core's crypto library needs brew's OpenSSL libraries added to its rpath
+        if ($IsOSX) {
+            # This is the library shipped with .NET Core
+            # This is allowed to fail as the user may have installed other versions of dotnet
+            Write-Warning ".NET Core links the incorrect OpenSSL, correcting .NET CLI libraries..."
+            find $env:HOME/.dotnet -name System.Security.Cryptography.Native.dylib | xargs sudo install_name_tool -add_rpath /usr/local/opt/openssl/lib
+        }
+    } elseif ($IsWindows) {
+        Remove-Item -ErrorAction SilentlyContinue -Recurse -Force ~\AppData\Local\Microsoft\dotnet
+        $installScript = "dotnet-install.ps1"
+        Invoke-WebRequest -Uri $obtainUrl/$installScript -OutFile $installScript
+        & ./$installScript -c $Channel -v $Version
+    }
+}
+
+
 function Start-PSBootstrap {
     [CmdletBinding(
         SupportsShouldProcess=$true,
         ConfirmImpact="High")]
     param(
-        [ValidateSet("dev", "beta", "preview")]
         [string]$Channel = "rel-1.0.0",
         [string]$Version = "latest",
         [switch]$Package,
+        [switch]$NoSudo,
         [switch]$Force
     )
 
@@ -662,12 +767,21 @@ function Start-PSBootstrap {
 
     Push-Location $PSScriptRoot/tools
 
+    # This allows sudo install to be optional; needed when running in containers / as root
+    # Note that when it is null, Invoke-Expression (but not &) must be used to interpolate properly
+    $sudo = if (!$NoSudo) { "sudo" }
+
     try {
         # Update googletest submodule for linux native cmake
         if ($IsLinux -or $IsOSX) {
-            $Submodule = "$PSScriptRoot/src/libpsl-native/test/googletest"
-            Remove-Item -Path $Submodule -Recurse -Force -ErrorAction SilentlyContinue
-            git submodule update --init -- $submodule
+            try {
+                Push-Location $PSScriptRoot
+                $Submodule = "$PSScriptRoot/src/libpsl-native/test/googletest"
+                Remove-Item -Path $Submodule -Recurse -Force -ErrorAction SilentlyContinue
+                git submodule update --init -- $submodule
+            } finally {
+                Pop-Location
+            }
         }
 
         # Install ours and .NET's dependencies
@@ -682,81 +796,58 @@ function Start-PSBootstrap {
             elseif ($IsUbuntu16) { $Deps += "libicu55" }
 
             # Packaging tools
-            if ($Package) { $Deps += "ruby-dev" }
+            if ($Package) { $Deps += "ruby-dev", "groff" }
 
             # Install dependencies
-            sudo apt-get install -y -qq $Deps
+            Start-NativeExecution {
+                Invoke-Expression "$sudo apt-get update"
+                Invoke-Expression "$sudo apt-get install -y -qq $Deps"
+            }
         } elseif ($IsCentOS) {
             # Build tools
-            $Deps += "curl", "gcc-c++", "cmake", "make"
+            $Deps += "which", "curl", "gcc-c++", "cmake", "make"
 
             # .NET Core required runtime libraries
             $Deps += "libicu", "libunwind"
 
             # Packaging tools
-            if ($Package) { $Deps += "ruby-devel", "rpmbuild" }
+            if ($Package) { $Deps += "ruby-devel", "rpm-build", "groff" }
 
             # Install dependencies
-            sudo yum install -y -q $Deps
+            Start-NativeExecution {
+                Invoke-Expression "$sudo yum install -y -q $Deps"
+            }
         } elseif ($IsOSX) {
             precheck 'brew' "Bootstrap dependency 'brew' not found, must install Homebrew! See http://brew.sh/"
 
             # Build tools
-            $Deps += "curl", "cmake"
+            $Deps += "cmake"
 
             # .NET Core required runtime libraries
             $Deps += "openssl"
 
             # Install dependencies
-            brew install $Deps
+            Start-NativeExecution { brew install $Deps }
+
+            # Install patched version of curl
+            Start-NativeExecution { brew install curl --with-openssl }
         }
 
         # Install [fpm](https://github.com/jordansissel/fpm) and [ronn](https://github.com/rtomayko/ronn)
         if ($Package) {
-            gem install fpm ronn
-        }
-
-        $obtainUrl = "https://raw.githubusercontent.com/dotnet/cli/rel/1.0.0/scripts/obtain"
-
-        # Install for Linux and OS X
-        if ($IsLinux -or $IsOSX) {
-            # Uninstall all previous dotnet packages
-            $uninstallScript = if ($IsUbuntu) {
-                "dotnet-uninstall-debian-packages.sh"
-            } elseif ($IsOSX) {
-                "dotnet-uninstall-pkgs.sh"
-            }
-
-            if ($uninstallScript) {
-                curl -s $obtainUrl/uninstall/$uninstallScript -o $uninstallScript
-                chmod +x $uninstallScript
-                sudo ./$uninstallScript
-            } else {
-                Write-Warning "This script only removes prior versions of dotnet for Ubuntu 14.04 and OS X"
-            }
-
-            # Install new dotnet 1.0.0 preview packages
-            $installScript = "dotnet-install.sh"
-            curl -s $obtainUrl/$installScript -o $installScript
-            chmod +x $installScript
-            bash ./$installScript -c $Channel -v $Version
-
-            # .NET Core's crypto library needs brew's OpenSSL libraries added to its rpath
-            if ($IsOSX) {
-                # This is the library shipped with .NET Core
-                # This is allowed to fail as the user may have installed other versions of dotnet
-                Write-Warning ".NET Core links the incorrect OpenSSL, correcting .NET CLI libraries..."
-                find $env:HOME/.dotnet -name System.Security.Cryptography.Native.dylib | xargs sudo install_name_tool -add_rpath /usr/local/opt/openssl/lib
+            try {
+                # We cannot guess if the user wants to run gem install as root
+                Start-NativeExecution { gem install fpm ronn }
+            } catch {
+                Write-Warning "Installation of fpm and ronn gems failed! Must resolve manually."
             }
         }
+
+        $DotnetArguments = @{ Channel=$Channel; Version=$Version; NoSudo=$NoSudo }
+        Install-Dotnet @DotnetArguments
 
         # Install for Windows
-        if ($IsWindows -and -not $IsCoreCLR) {
-            Remove-Item -ErrorAction SilentlyContinue -Recurse -Force ~\AppData\Local\Microsoft\dotnet
-            $installScript = "dotnet-install.ps1"
-            Invoke-WebRequest -Uri $obtainUrl/$installScript -OutFile $installScript
-            & ./$installScript -c $Channel -v $Version
-
+        if ($IsWindows) {
             $machinePath = [Environment]::GetEnvironmentVariable('Path', 'MACHINE')
             $newMachineEnvironmentPath = $machinePath
 
@@ -790,7 +881,7 @@ function Start-PSBootstrap {
             }
 
             # Install cmake
-            $cmakePath = "${env:ProgramFiles(x86)}\CMake\bin"
+            $cmakePath = "${env:ProgramFiles}\CMake\bin"
             if($cmakePresent) {
                 log "Cmake is already installed. Skipping installation."
             } else {
@@ -823,8 +914,6 @@ function Start-PSBootstrap {
                 }
             }
 
-        } elseif ($IsWindows) {
-            Write-Warning "Start-PSBootstrap cannot be run in Core PowerShell on Windows (need Invoke-WebRequest!)"
         }
     } finally {
         Pop-Location
@@ -1013,6 +1102,61 @@ It consists of a cross-platform command-line shell and associated scripting lang
 
     New-Item -Force -ItemType SymbolicLink -Path "/tmp/$Name" -Target "$Destination/$Name" >$null
 
+    if ($IsCentos) {
+        $AfterInstallScript = [io.path]::GetTempFileName()
+        $AfterRemoveScript = [io.path]::GetTempFileName()
+        @'
+#!/bin/sh
+if [ ! -f /etc/shells ] ; then
+    echo "{0}" > /etc/shells
+else
+    grep -q "^{0}$" /etc/shells || echo "{0}" >> /etc/shells
+fi
+'@ -f "$Link/$Name" | Out-File -FilePath $AfterInstallScript -Encoding ascii
+
+        @'
+if [ "$1" = 0 ] ; then
+    if [ -f /etc/shells ] ; then
+        TmpFile=`/bin/mktemp /tmp/.powershellmXXXXXX`
+        grep -v '^{0}$' /etc/shells > $TmpFile
+        cp -f $TmpFile /etc/shells
+        rm -f $TmpFile
+    fi
+fi
+'@ -f "$Link/$Name" | Out-File -FilePath $AfterRemoveScript -Encoding ascii
+    }
+    elseif ($IsUbuntu) {
+        $AfterInstallScript = [io.path]::GetTempFileName()
+        $AfterRemoveScript = [io.path]::GetTempFileName()
+        @'
+#!/bin/sh
+set -e
+case "$1" in
+    (configure)
+        add-shell "{0}"
+    ;;
+    (abort-upgrade|abort-remove|abort-deconfigure)
+        exit 0
+    ;;
+    (*)
+        echo "postinst called with unknown argument '$1'" >&2
+        exit 0
+    ;;
+esac
+'@ -f "$Link/$Name" | Out-File -FilePath $AfterInstallScript -Encoding ascii
+
+        @'
+#!/bin/sh
+set -e
+case "$1" in
+        (remove)
+        remove-shell "{0}"
+        ;;
+esac
+'@ -f "$Link/$Name" | Out-File -FilePath $AfterRemoveScript -Encoding ascii
+    }
+
+
     # there is a weird bug in fpm
     # if the target of the powershell symlink exists, `fpm` aborts
     # with a `utime` error on OS X.
@@ -1054,17 +1198,40 @@ It consists of a cross-platform command-line shell and associated scripting lang
         chmod 755 "$Staging/$Name" # only the executable should be executable
     }
 
-    $libunwind = switch ($Type) {
-        "deb" { "libunwind8" }
-        "rpm" { "libunwind" }
-    }
-
-    $libicu = switch ($Type) {
-        "deb" {
-            if ($IsUbuntu14) { "libicu52" }
-            elseif ($IsUbuntu16) { "libicu55" }
+    # Setup package dependencies
+    # These should match those in the Dockerfiles, but exclude tools like Git, which, and curl
+    $Dependencies = @()
+    if ($IsUbuntu) {
+        $Dependencies = @(
+            "libc6",
+            "libcurl3",
+            "libgcc1",
+            "libssl1.0.0",
+            "libstdc++6",
+            "libtinfo5",
+            "libunwind8",
+            "libuuid1",
+            "zlib1g"
+        )
+        # Please note the different libicu package dependency!
+        if ($IsUbuntu14) {
+            $Dependencies += "libicu52"
+        } elseif ($IsUbuntu16) {
+            $Dependencies += "libicu55"
         }
-        "rpm" { "libicu" }
+    } elseif ($IsCentOS) {
+        $Dependencies = @(
+            "glibc",
+            "libcurl",
+            "libgcc",
+            "libicu",
+            "openssl",
+            "libstdc++",
+            "ncurses-base",
+            "libunwind",
+            "uuid",
+            "zlib"
+        )
     }
 
     # iteration is "debian_revision"
@@ -1092,15 +1259,23 @@ It consists of a cross-platform command-line shell and associated scripting lang
         "--description", $Description,
         "--category", "shells",
         "--rpm-os", "linux",
-        "--depends", $libunwind,
-        "--depends", $libicu,
         "-t", $Type,
-        "-s", "dir",
+        "-s", "dir"
+    )
+    foreach ($Dependency in $Dependencies) {
+        $Arguments += @("--depends", $Dependency)
+    }
+    if ($AfterInstallScript) {
+       $Arguments += @("--after-install", $AfterInstallScript)
+    }
+    if ($AfterRemoveScript) {
+       $Arguments += @("--after-remove", $AfterRemoveScript)
+    }
+    $Arguments += @(
         "$Staging/=$Destination/",
         "$GzipFile=$ManFile",
         "/tmp/$Name=$Link"
     )
-
     # Build package
     try {
         $Output = Start-NativeExecution { fpm $Arguments }
@@ -1111,6 +1286,12 @@ It consists of a cross-platform command-line shell and associated scripting lang
                 Write-Warning "Move $hack_dest to $symlink_dest (fpm utime bug)"
                 Move-Item $hack_dest $symlink_dest
             }
+        }
+        if ($AfterInstallScript) {
+           Remove-Item -erroraction 'silentlycontinue' $AfterInstallScript
+        }
+        if ($AfterRemoveScript) {
+           Remove-Item -erroraction 'silentlycontinue' $AfterRemoveScript
         }
     }
 
@@ -1138,6 +1319,8 @@ function Publish-NuGetFeed
 'System.Management.Automation',
 'Microsoft.PowerShell.CoreCLR.AssemblyLoadContext',
 'Microsoft.PowerShell.CoreCLR.Eventing',
+'Microsoft.WSMan.Management',
+'Microsoft.WSMan.Runtime',
 'Microsoft.PowerShell.SDK'
     ) | % {
         if ($VersionSuffix) {
@@ -1211,9 +1394,13 @@ function Start-DevPowerShell {
 
         Start-Process @startProcessArgs
     } finally {
-        ri env:DEVPATH
+        if($env:DevPath)
+        {
+            Remove-Item env:DEVPATH
+        }
+        
         if ($ZapDisable) {
-            ri env:COMPLUS_ZapDisable
+            Remove-Item env:COMPLUS_ZapDisable
         }
     }
 }
@@ -1254,7 +1441,7 @@ function Copy-MappedFiles {
             throw "$pslMonadRoot is not a valid folder"
         }
 
-        # Do some intelligens to prevent shouting us in the foot with CL management
+        # Do some intelligence to prevent shooting us in the foot with CL management
 
         # finding base-line CL
         $cl = git --git-dir="$PSScriptRoot/.git" tag | % {if ($_ -match 'SD.(\d+)$') {[int]$Matches[1]} } | Sort-Object -Descending | Select-Object -First 1
@@ -1360,7 +1547,7 @@ function Get-Mappings
 
 <#
 .EXAMPLE Send-GitDiffToSd -diffArg1 32b90c048aa0c5bc8e67f96a98ea01c728c4a5be~1 -diffArg2 32b90c048aa0c5bc8e67f96a98ea01c728c4a5be -AdminRoot d:\e\ps_dev\admin
-Apply a signle commit to admin folder
+Apply a single commit to admin folder
 #>
 function Send-GitDiffToSd {
     param(
@@ -1633,7 +1820,7 @@ function script:Use-MSBuild {
 
 function script:log([string]$message) {
     Write-Host -Foreground Green $message
-    #reset colors for older package to at return to default after error message on a compiliation error
+    #reset colors for older package to at return to default after error message on a compilation error
     [console]::ResetColor()
 }
 
@@ -1706,7 +1893,7 @@ function script:Start-NativeExecution([scriptblock]$sb)
     $script:ErrorActionPreference = "Continue"
     try {
         & $sb
-        # note, if $sb doens't have a native invocation, $LASTEXITCODE will
+        # note, if $sb doesn't have a native invocation, $LASTEXITCODE will
         # point to the obsolete value
         if ($LASTEXITCODE -ne 0) {
             throw "Execution of {$sb} failed with exit code $LASTEXITCODE"
@@ -2076,6 +2263,27 @@ function Start-CrossGen {
         Remove-Item $symbolsPath -Force -ErrorAction SilentlyContinue
     }
 }
+
+# Cleans the PowerShell repo
+# by default everything but the root folder and the Packages folder
+# if you specify -IncludePackages it will clean the Packages folder
+function Clear-PSRepo
+{
+    [CmdletBinding()]
+    param(
+        [switch] $IncludePackages
+    )
+        Get-ChildItem $PSScriptRoot\* -Directory -Exclude 'Packages' | ForEach-Object {
+        Write-Verbose "Cleaning $_ ..." 
+        git clean -fdX $_
+    }
+
+    if($IncludePackages)
+    {
+        remove-item $RepoRoot\Packages\ -Recurse -Force  -ErrorAction SilentlyContinue
+    }
+}
+
 
 $script:RESX_TEMPLATE = @'
 <?xml version="1.0" encoding="utf-8"?>

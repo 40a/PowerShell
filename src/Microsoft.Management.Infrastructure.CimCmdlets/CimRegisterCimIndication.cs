@@ -112,7 +112,7 @@ namespace Microsoft.Management.Infrastructure.CimCmdlets
     {
         /// <summary>
         /// <para>
-        /// New subscritpion result event
+        /// New subscription result event
         /// </para>
         /// </summary>
         public event EventHandler<CimSubscriptionEventArgs> OnNewSubscriptionResult;
@@ -129,42 +129,42 @@ namespace Microsoft.Management.Infrastructure.CimCmdlets
         }
 
         /// <summary>
-        /// Start an indication subsctiption target to the given computer.
+        /// Start an indication subscription target to the given computer.
         /// </summary>
         /// <param name="computerName">null stands for localhost</param>
         /// <param name="nameSpace"></param>
         /// <param name="queryDialect"></param>
         /// <param name="queryExpression"></param>
-        /// <param name="opreationTimeout"></param>
+        /// <param name="operationTimeout"></param>
         public void RegisterCimIndication(
             string computerName,
             string nameSpace,
             string queryDialect,
             string queryExpression,
-            UInt32 opreationTimeout)
+            UInt32 operationTimeout)
         {
             DebugHelper.WriteLogEx("queryDialect = '{0}'; queryExpression = '{1}'", 0, queryDialect, queryExpression);
             this.TargetComputerName = computerName;
-            CimSessionProxy proxy = CreateSessionProxy(computerName, opreationTimeout);
+            CimSessionProxy proxy = CreateSessionProxy(computerName, operationTimeout);
             proxy.SubscribeAsync(nameSpace, queryDialect, queryExpression);
             WaitForAckMessage();
         }
 
         /// <summary>
-        /// Start an indication subsctiption through a given <see cref="CimSession"/>.
+        /// Start an indication subscription through a given <see cref="CimSession"/>.
         /// </summary>
         /// <param name="cimSession">Cannot be null</param>
         /// <param name="nameSpace"></param>
         /// <param name="queryDialect"></param>
         /// <param name="queryExpression"></param>
-        /// <param name="opreationTimeout"></param>
+        /// <param name="operationTimeout"></param>
         /// <exception cref="ArgumentNullException">throw if cimSession is null</exception>
         public void RegisterCimIndication(
             CimSession cimSession,
             string nameSpace,
             string queryDialect,
             string queryExpression,
-            UInt32 opreationTimeout)
+            UInt32 operationTimeout)
         {
             DebugHelper.WriteLogEx("queryDialect = '{0}'; queryExpression = '{1}'", 0, queryDialect, queryExpression);
             if (cimSession == null)
@@ -172,7 +172,7 @@ namespace Microsoft.Management.Infrastructure.CimCmdlets
                 throw new ArgumentNullException(String.Format(CultureInfo.CurrentUICulture, Strings.NullArgument, @"cimSession"));
             }
             this.TargetComputerName = cimSession.ComputerName;
-            CimSessionProxy proxy = CreateSessionProxy(cimSession, opreationTimeout);
+            CimSessionProxy proxy = CreateSessionProxy(cimSession, operationTimeout);
             proxy.SubscribeAsync(nameSpace, queryDialect, queryExpression);
             WaitForAckMessage();
         }

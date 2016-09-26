@@ -190,15 +190,15 @@ namespace System.Management.Automation
                         // actually have quotes in different places, but the Win32 command line=>argv parser
                         // erases those differences.
                         //
-                        // We need to check quotes that the win32 arugment parser checks which is currently 
+                        // We need to check quotes that the win32 argument parser checks which is currently 
                         // just the normal double quotes, no other special quotes.  Also note that mismatched
                         // quotes are supported.
 
-                        bool needQuotes = false;
+                        bool needQuotes = false, followingBackslash = false;
                         int quoteCount = 0;
                         for (int i = 0; i < arg.Length; i++)
                         {
-                            if (arg[i] == '"')
+                            if (arg[i] == '"' && !followingBackslash)
                             {
                                 quoteCount += 1;
                             }
@@ -206,6 +206,8 @@ namespace System.Management.Automation
                             {
                                 needQuotes = true;
                             }
+
+                            followingBackslash = arg[i] == '\\';
                         }
 
                         if (needQuotes)

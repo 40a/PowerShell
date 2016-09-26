@@ -69,7 +69,7 @@ namespace Microsoft.PowerShell.Commands
     /// <summary>
     /// Class that implements export-console cmdlet.
     /// </summary>
-    [Cmdlet(VerbsData.Export, "Console", SupportsShouldProcess = true, HelpUri = "http://go.microsoft.com/fwlink/?LinkID=113298")]
+    [Cmdlet(VerbsData.Export, "Console", SupportsShouldProcess = true, HelpUri = "https://go.microsoft.com/fwlink/?LinkID=113298")]
     public sealed class ExportConsoleCommand : ConsoleCmdletsBase
     {
         #region Parameters
@@ -248,7 +248,7 @@ namespace Microsoft.PowerShell.Commands
             catch (ArgumentException ae)
             {
                 ThrowError(resolvedPath,
-                    "InvalidCharacetersInPath", ae, ErrorCategory.InvalidArgument);
+                    "InvalidCharactersInPath", ae, ErrorCategory.InvalidArgument);
             }
 
             // looks like saving succeeded.
@@ -556,7 +556,7 @@ namespace Microsoft.PowerShell.Commands
                 return consoleValue;
             }
 
-            throw PSTraceSource.NewArgumentException("fileName", ConsoleInfoErrorStrings.ConsoleCannotbeConvertedToString);
+            throw PSTraceSource.NewArgumentException("fileName", ConsoleInfoErrorStrings.ConsoleCannotBeConvertedToString);
         }
 
         /// <summary>

@@ -240,7 +240,7 @@ namespace System.Management.Automation.Remoting
                 case RemoteSessionEvent.KeyReceived:
                     {
                         Dbg.Assert(_state == RemoteSessionState.EstablishedAndKeySent,
-                            "Key Receving can only be raised after reaching the Established state");
+                            "Key Receiving can only be raised after reaching the Established state");
 
                         if (_state == RemoteSessionState.EstablishedAndKeySent)
                         {
@@ -506,7 +506,7 @@ namespace System.Management.Automation.Remoting
         {
             lock (_syncObject)
             {
-                s_trace.WriteLine("Event recieved : {0} for {1}", arg.StateEvent, _id);
+                s_trace.WriteLine("Event received : {0} for {1}", arg.StateEvent, _id);
                 if (clearQueuedEvents)
                 {
                     _processPendingEventsQueue.Clear();
@@ -577,7 +577,7 @@ namespace System.Management.Automation.Remoting
         #region Event Handlers
 
         /// <summary>
-        /// This is the handler for CreateSession event of the FSM. This is the begining of everything
+        /// This is the handler for CreateSession event of the FSM. This is the beginning of everything
         /// else. From this moment on, the FSM will proceeds step by step to eventually reach
         /// Established state or Closed state.
         /// </summary>
@@ -612,7 +612,7 @@ namespace System.Management.Automation.Remoting
 
 
         /// <summary>
-        /// This is the handler for ConnectSession event of the FSM. This is the begining of everything
+        /// This is the handler for ConnectSession event of the FSM. This is the beginning of everything
         /// else. From this moment on, the FSM will proceeds step by step to eventually reach
         /// Established state or Closed state.
         /// </summary>
@@ -633,7 +633,7 @@ namespace System.Management.Automation.Remoting
 
                 if (State == RemoteSessionState.Idle)
                 {
-                    //We need to send negotiotion and connect algorithm related info 
+                    //We need to send negotiation and connect algorithm related info 
                     //Change state to let other DSHandlers add appropriate messages to be piggybacked on transport's Create payload
                     RemoteSessionStateMachineEventArgs sendingArg = new RemoteSessionStateMachineEventArgs(RemoteSessionEvent.NegotiationSendingOnConnect);
                     RaiseEvent(sendingArg);

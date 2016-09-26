@@ -69,7 +69,7 @@ function ParseMetaData
 
     # Check the OData version in the fetched metadata to make sure that
     # OData version (and hence the protocol) used in the metadata is
-    # supported by the adatapter used for executing the generated
+    # supported by the adapter used for executing the generated
     # proxy cmdlets.
     if(($metadataXML -ne $null) -and ($metadataXML.Edmx -ne $null))
     {
@@ -363,10 +363,10 @@ function VerifyMetaData
         $callerPSCmdlet.ThrowTerminatingError($errorRecord)
     }
     
-    # All the generated proxy cmdlets would have the following paramters added.
-    # The ODataAdpter has the default implementation on how to handle the 
+    # All the generated proxy cmdlets would have the following parameters added.
+    # The ODataAdapter has the default implementation on how to handle the 
     # scenario when these parameters are used during proxy invocations.
-    # The default implementaion can be overridden using adapter derivation model. 
+    # The default implementation can be overridden using adapter derivation model. 
     $reservedProperties = @("Filter", "IncludeTotalResponseCount", "OrderBy", "Select", "Skip", "Top", "ConnectionUri", "CertificateThumbprint", "Credential")
     $validEntitySets = @()
     $sessionCommands = Get-Command -All
@@ -492,8 +492,8 @@ function VerifyMetaData
 # GenerateClientSideProxyModule is a helper function used 
 # to generate a PowerShell module that serves as a client
 # side proxy for interacting with the server side 
-# OData endpoint. The proxy module conatins proxy cmdlets
-# implemneted in CDXML modules and they are exposed 
+# OData endpoint. The proxy module contains proxy cmdlets
+# implemented in CDXML modules and they are exposed 
 # through module manifest as nested modules.
 # One CDXML module is created for each EntitySet 
 # described in the metadata. Each CDXML module contains
@@ -528,25 +528,25 @@ function GenerateClientSideProxyModule
 
     # This function performs the following set of tasks 
     # while creating the client side proxy module:
-    # 1. If the server side endpoint exposes comlex types,
+    # 1. If the server side endpoint exposes complex types,
     #    the client side proxy complex types are created
-    #    as C# class in ComplexTypeDefinations.psm1 
-    # 2. Creates proxy cmdlets for CRUD opreations.
-    # 3. Creates proxy cmdlets for Serice action opreations.
+    #    as C# class in ComplexTypeDefinitions.psm1 
+    # 2. Creates proxy cmdlets for CRUD operations.
+    # 3. Creates proxy cmdlets for Service action operations.
     # 4. Creates module manifest.
 
     Write-Verbose ($LocalizedData.VerboseSavingModule -f $outputModule)
 
-    $typeDefinationFileName = "ComplexTypeDefinitions.psm1"
-    $complexTypeMapping = GenerateComplexTypeDefination $metaData $metaDataUri $outputModule $typeDefinationFileName $cmdletAdapter $callerPSCmdlet
+    $typeDefinitionFileName = "ComplexTypeDefinitions.psm1"
+    $complexTypeMapping = GenerateComplexTypeDefinition $metaData $metaDataUri $outputModule $typeDefinitionFileName $cmdletAdapter $callerPSCmdlet
 
     ProgressBarHelper "Export-ODataEndpointProxy" $progressBarStatus 20 20 1  1
 
-    $complexTypeFileDefinationPath = Join-Path -Path $outputModule -ChildPath $typeDefinationFileName
+    $complexTypeFileDefinitionPath = Join-Path -Path $outputModule -ChildPath $typeDefinitionFileName
 
-    if(Test-Path -Path $complexTypeFileDefinationPath)
+    if(Test-Path -Path $complexTypeFileDefinitionPath)
     {
-        $proxyFile = New-Object -TypeName System.IO.FileInfo -ArgumentList $complexTypeFileDefinationPath | Get-Item
+        $proxyFile = New-Object -TypeName System.IO.FileInfo -ArgumentList $complexTypeFileDefinitionPath | Get-Item
         if($callerPSCmdlet -ne $null)
         { 
             $callerPSCmdlet.WriteObject($proxyFile)
@@ -570,7 +570,7 @@ function GenerateClientSideProxyModule
 
     $moduleDirInfo = [System.IO.DirectoryInfo]::new($outputModule)
     $moduleManifestName = $moduleDirInfo.Name + ".psd1"
-    GenerateModuleManifest $metaData $outputModule\$moduleManifestName @($typeDefinationFileName, 'ServiceActions.cdxml') $resourceNameMapping $progressBarStatus $callerPSCmdlet
+    GenerateModuleManifest $metaData $outputModule\$moduleManifestName @($typeDefinitionFileName, 'ServiceActions.cdxml') $resourceNameMapping $progressBarStatus $callerPSCmdlet
 }
 
 #########################################################
@@ -592,7 +592,7 @@ function GenerateCRUDProxyCmdlet
         [string] $cmdletAdapter,
         [Hashtable] $resourceNameMapping,  
         [Hashtable] $customData,
-        [Hashtable] $compexTypeMapping,
+        [Hashtable] $complexTypeMapping,
         [string] $progressBarActivityName,
         [string] $progressBarStatus,
         [double] $previousSegmentWeight,
@@ -643,7 +643,7 @@ function GenerateCRUDProxyCmdlet
 
     $navigationProperties = GetAllProperties $entitySet.Type -IncludeOnlyNavigationProperties
 
-    GenerateGetProxyCmdlet $xmlWriter $metaData $keys $navigationProperties $cmdletAdapter $compexTypeMapping
+    GenerateGetProxyCmdlet $xmlWriter $metaData $keys $navigationProperties $cmdletAdapter $complexTypeMapping
 
     $nonKeyProperties = (GetAllProperties $entitySet.Type) | ? { -not $_.isKey }
     $nullableProperties = $nonKeyProperties | ? { $_.isNullable }
@@ -662,11 +662,11 @@ function GenerateCRUDProxyCmdlet
             $nonNullableProperties = UpdateNetworkControllerSpecificProperties $nonNullableProperties $additionalProperties $keyProperties $false
         }
 
-        GenerateNewProxyCmdlet $xmlWriter $metaData $keyProperties $nonNullableProperties $nullableProperties $navigationProperties $cmdletAdapter $compexTypeMapping
+        GenerateNewProxyCmdlet $xmlWriter $metaData $keyProperties $nonNullableProperties $nullableProperties $navigationProperties $cmdletAdapter $complexTypeMapping
 
         if ($CmdletAdapter -ne "NetworkControllerAdapter")
         {
-            GenerateSetProxyCmdlet $xmlWriter $keyProperties $nonKeyProperties $compexTypeMapping
+            GenerateSetProxyCmdlet $xmlWriter $keyProperties $nonKeyProperties $complexTypeMapping
         }
 
         if ($CmdletAdapter -eq "NetworkControllerAdapter")
@@ -674,7 +674,7 @@ function GenerateCRUDProxyCmdlet
     	    $keyProperties = GetKeys $entitySet $customData.$name 'Remove'
         }
 
-        GenerateRemoveProxyCmdlet $xmlWriter $metaData $keyProperties $navigationProperties $cmdletAdapter $compexTypeMapping
+        GenerateRemoveProxyCmdlet $xmlWriter $metaData $keyProperties $navigationProperties $cmdletAdapter $complexTypeMapping
 
         $entityActions = $metaData.Actions | Where-Object { ($_.EntitySet.Namespace -eq $entitySet.Namespace) -and ($_.EntitySet.Name -eq $entitySet.Name) }
 
@@ -1169,7 +1169,7 @@ function GenerateServiceActionProxyCmdlet
 # to generate a wrapper module manifest file. The
 # generated module manifest is persisted to the disk at
 # the specified OutPutModule path. When the module 
-# manifest is imported, the following comands will 
+# manifest is imported, the following commands will 
 # be imported:
 # 1. Get, Set, New & Remove proxy cmdlets.
 # 2. If the server side Odata endpoint exposes complex
@@ -1466,11 +1466,11 @@ function GetEntitySetForEntityType
 #########################################################
 # ProcessStreamHelper is a helper function that performs 
 # the following utility tasks:
-# 1. Writes verobose messsages to the stream.
+# 1. Writes verbose messages to the stream.
 # 2. Writes FileInfo objects for the proxy modules 
 #    saved to the disk. This is done to keep the user 
 #    experience in consistent with Export-PSSession.
-# 3. Updates progess bar.
+# 3. Updates progress bar.
 #########################################################
 function ProcessStreamHelper 
 {
@@ -1631,14 +1631,14 @@ function AddParametersCDXML
         [bool] $isMandatory,
         [string] $prefix,
         [string] $suffix,
-        [Hashtable] $compleTypeMapping
+        [Hashtable] $complexTypeMapping
     )
 
     $properties | ? { $_ -ne $null } | % {
         $xmlWriter.WriteStartElement('Parameter')
         $xmlWriter.WriteAttributeString('ParameterName', $_.Name + $suffix)
             $xmlWriter.WriteStartElement('Type')
-            $PSTypeName = Convert-ODataTypeToCLRType $_.TypeName $compleTypeMapping
+            $PSTypeName = Convert-ODataTypeToCLRType $_.TypeName $complexTypeMapping
             $xmlWriter.WriteAttributeString('PSType', $PSTypeName)
             $xmlWriter.WriteEndElement()
 
@@ -1660,17 +1660,17 @@ function AddParametersCDXML
 }
 
 #########################################################
-# GenerateComplexTypeDefination is a helper function used 
-# to generate comlplex type defination from the metadata.
+# GenerateComplexTypeDefinition is a helper function used 
+# to generate complex type definition from the metadata.
 #########################################################
-function GenerateComplexTypeDefination 
+function GenerateComplexTypeDefinition 
 {
     param
     (
         [ODataUtils.Metadata] $metaData,
         [string] $metaDataUri,
         [string] $OutputModule,
-        [string] $typeDefinationFileName,
+        [string] $typeDefinitionFileName,
         [string] $cmdletAdapter,
         [System.Management.Automation.PSCmdlet] $callerPSCmdlet
     )
@@ -1680,10 +1680,10 @@ function GenerateComplexTypeDefination
     if($metaData -eq $null) { throw ($LocalizedData.ArguementNullError -f "metadata", "GenerateComplexTypeDefination") }
     if($callerPSCmdlet -eq $null) { throw ($LocalizedData.ArguementNullError -f "PSCmdlet", "GenerateComplexTypeDefination") }
 
-    $Path = "$OutputModule\$typeDefinationFileName"
+    $Path = "$OutputModule\$typeDefinitionFileName"
 
     # We are currently generating classes for EntityType & ComplexType 
-    # defination exposed in the metadata.
+    # definition exposed in the metadata.
     $typesToBeGenerated = $metaData.EntityTypes+$metadata.ComplexTypes
 
     if($typesToBeGenerated -ne $null -and $typesToBeGenerated.Count -gt 0)
@@ -1779,7 +1779,7 @@ using System.Management.Automation;
      return $complexTypeMapping
 }
 
-# Creating a single instace of CSharpCodeProvider that would be used 
+# Creating a single instance of CSharpCodeProvider that would be used 
 # for Identifier validation in the ValidateComplexTypeIdentifier helper method.
 $cSharpCodeProvider = [Microsoft.CSharp.CSharpCodeProvider]::new()
 

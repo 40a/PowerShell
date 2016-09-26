@@ -69,7 +69,7 @@ Describe "Test suite for Microsoft.PowerShell.Archive module" -Tags "CI" {
         try
         {
             Compress-Archive -Path $path -DestinationPath $destinationPath -CompressionLevel $compressionLevel
-            trow "ValidateNotNullOrEmpty attribute is missing on one of parameters belonging to Path parameterset."
+            throw "ValidateNotNullOrEmpty attribute is missing on one of parameters belonging to Path parameterset."
         }
         catch
         {
@@ -593,7 +593,7 @@ Describe "Test suite for Microsoft.PowerShell.Archive module" -Tags "CI" {
             ArchiveFileEntryContentValidator "$destinationPath" ([io.path]::Combine("SourceDir","ChildDir-1","Sample-3.txt")) $modifiedContent
         }
         
-        It "Validate Compress-Archive cmdlet in pipleline scenario" {
+        It "Validate Compress-Archive cmdlet in pipeline scenario" {
             $destinationPath = "$TestDrive/CompressArchiveFromPipeline.zip"
 
             # Piping a single file path to Compress-Archive
@@ -645,7 +645,7 @@ Describe "Test suite for Microsoft.PowerShell.Archive module" -Tags "CI" {
     }
 
     Context "Expand-Archive - Parameter validation test cases" {
-        It "Validate non existing archive -Path trows expected error message" {
+        It "Validate non existing archive -Path throws expected error message" {
             $sourcePath = "$TestDrive/SourceDir"
             $destinationPath = "$TestDrive/ExpandedArchive"
             try
@@ -878,7 +878,7 @@ Describe "Test suite for Microsoft.PowerShell.Archive module" -Tags "CI" {
             Compare-Object -ReferenceObject $extractedList -DifferenceObject $sourceList -PassThru | Should Be $null
         }
 
-        It "Validate Expand-Archive cmdlet in pipleline scenario" {
+        It "Validate Expand-Archive cmdlet in pipeline scenario" {
             $sourcePath = "$TestDrive/SamplePreCreated*.zip"
             $destinationPath = "$TestDrive/PipeToExpandArchive"
 

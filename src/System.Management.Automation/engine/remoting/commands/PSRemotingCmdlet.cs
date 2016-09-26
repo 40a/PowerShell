@@ -110,7 +110,7 @@ namespace Microsoft.PowerShell.Commands
         /// </summary>
         /// <param name="resourceString">resource String which holds the message
         /// </param>
-        /// <returns>Error message loaded from appropriate resouce cache</returns>
+        /// <returns>Error message loaded from appropriate resource cache</returns>
         internal String GetMessage(string resourceString)
         {
             String message = GetMessage(resourceString, null);
@@ -603,7 +603,7 @@ namespace Microsoft.PowerShell.Commands
         public virtual Uri[] ConnectionUri { get; set; }
 
         /// <summary>
-        /// The AllowRediraction parameter enables the implicit redirection functionality
+        /// The AllowRedirection parameter enables the implicit redirection functionality
         /// </summary>
         [Parameter(ParameterSetName = PSRemotingBaseCmdlet.UriParameterSet)]
         public virtual SwitchParameter AllowRedirection
@@ -683,7 +683,7 @@ namespace Microsoft.PowerShell.Commands
         /// <summary>
         /// SSH Target Host Name
         /// </summary>
-        [Parameter(ParameterSetName = PSRemotingBaseCmdlet.SSHHostParameterSet)]
+        [Parameter(ParameterSetName = PSRemotingBaseCmdlet.SSHHostParameterSet, Mandatory = true)]
         [ValidateNotNullOrEmpty()]
         public virtual string HostName
         {
@@ -694,7 +694,7 @@ namespace Microsoft.PowerShell.Commands
         /// <summary>
         /// SSH User Name
         /// </summary>
-        [Parameter(ParameterSetName = PSRemotingBaseCmdlet.SSHHostParameterSet)]
+        [Parameter(ParameterSetName = PSRemotingBaseCmdlet.SSHHostParameterSet, Mandatory = true)]
         [ValidateNotNullOrEmpty()]
         public virtual string UserName
         {
@@ -703,11 +703,11 @@ namespace Microsoft.PowerShell.Commands
         }
 
         /// <summary>
-        /// SSH Key Path
+        /// SSH Key File Path
         /// </summary>
         [Parameter(ParameterSetName = PSRemotingBaseCmdlet.SSHHostParameterSet)]
         [ValidateNotNullOrEmpty()]
-        public virtual string KeyPath
+        public virtual string KeyFilePath
         {
             get;
             set;
@@ -723,7 +723,7 @@ namespace Microsoft.PowerShell.Commands
         /// Used to resolve authentication from the parameters chosen by the user.
         /// User has the following options:
         /// 1. AuthMechanism + Credential
-        /// 2. CertiticateThumbPrint
+        /// 2. CertificateThumbPrint
         /// 
         /// All the above are mutually exclusive.
         /// </summary>
@@ -735,7 +735,7 @@ namespace Microsoft.PowerShell.Commands
             if ((credential != null) && (thumbprint != null))
             {
                 String message = PSRemotingErrorInvariants.FormatResourceString(
-                    RemotingErrorIdStrings.NewRunspaceAmbiguosAuthentication,
+                    RemotingErrorIdStrings.NewRunspaceAmbiguousAuthentication,
                         "CertificateThumbPrint", "Credential");
 
                 throw new InvalidOperationException(message);
@@ -744,7 +744,7 @@ namespace Microsoft.PowerShell.Commands
             if ((authentication != AuthenticationMechanism.Default) && (thumbprint != null))
             {
                 String message = PSRemotingErrorInvariants.FormatResourceString(
-                    RemotingErrorIdStrings.NewRunspaceAmbiguosAuthentication,
+                    RemotingErrorIdStrings.NewRunspaceAmbiguousAuthentication,
                         "CertificateThumbPrint", authentication.ToString());
 
                 throw new InvalidOperationException(message);
@@ -754,7 +754,7 @@ namespace Microsoft.PowerShell.Commands
                 (credential != null))
             {
                 string message = PSRemotingErrorInvariants.FormatResourceString(
-                    RemotingErrorIdStrings.NewRunspaceAmbiguosAuthentication,
+                    RemotingErrorIdStrings.NewRunspaceAmbiguousAuthentication,
                     "Credential", authentication.ToString());
                 throw new InvalidOperationException(message);
             }
@@ -814,7 +814,7 @@ namespace Microsoft.PowerShell.Commands
 
             if (!ParameterSetName.Equals(PSRemotingBaseCmdlet.UriParameterSet, StringComparison.OrdinalIgnoreCase))
             {
-                // uri redirection is supported only with URI parmeter set
+                // uri redirection is supported only with URI parameter set
                 connectionInfo.MaximumConnectionRedirectionCount = 0;
             }
 
@@ -862,6 +862,14 @@ namespace Microsoft.PowerShell.Commands
         protected override void BeginProcessing()
         {
             base.BeginProcessing();
+
+            // Validate KeyFilePath parameter.
+            if ((ParameterSetName == PSRemotingBaseCmdlet.SSHHostParameterSet) &&
+                (this.KeyFilePath != null))
+            {
+                // Resolve the key file path when set.
+                this.KeyFilePath = PathResolver.ResolveProviderAndPath(this.KeyFilePath, true, this, false, RemotingErrorIdStrings.FilePathNotFromFileSystemProvider);
+            }
 
             // Validate IdleTimeout parameter.
             int idleTimeout = (int)SessionOption.IdleTimeout.TotalMilliseconds;
@@ -1166,7 +1174,7 @@ namespace Microsoft.PowerShell.Commands
         /// </summary>
         protected void CreateHelpersForSpecifiedHostNames()
         {
-            var sshConnectionInfo = new SSHConnectionInfo(this.UserName, this.HostName, this.KeyPath);
+            var sshConnectionInfo = new SSHConnectionInfo(this.UserName, this.HostName, this.KeyFilePath);
             var typeTable = TypeTable.LoadDefaultTypeFiles();
             var remoteRunspace = RunspaceFactory.CreateRunspace(sshConnectionInfo, this.Host, typeTable) as RemoteRunspace;
             var pipeline = CreatePipeline(remoteRunspace);
@@ -1724,8 +1732,7 @@ namespace Microsoft.PowerShell.Commands
             }
 
             //Resolve file path
-            PathResolver resolver = new PathResolver();
-            string resolvedPath = resolver.ResolveProviderAndPath(filePath, isLiteralPath, this, false, RemotingErrorIdStrings.FilePathNotFromFileSystemProvider);
+            string resolvedPath = PathResolver.ResolveProviderAndPath(filePath, isLiteralPath, this, false, RemotingErrorIdStrings.FilePathNotFromFileSystemProvider);
 
             //read content of file
             ExternalScriptInfo scriptInfo = new ExternalScriptInfo(filePath, resolvedPath, this.Context);
@@ -2834,11 +2841,11 @@ namespace Microsoft.PowerShell.Commands
         }
 
         /// <summary>
-        /// Write the maching runspace objects down the pipeline, or add to the list.
+        /// Write the matching runspace objects down the pipeline, or add to the list.
         /// </summary>
-        /// <param name="matchingRunspaceInfos">The maching runspaces</param>
+        /// <param name="matchingRunspaceInfos">The matching runspaces</param>
         /// <param name="writeobject">if true write the object down the pipeline. Otherwise, add to the list</param>
-        /// <param name="matches">The list we add the maching runspaces to</param>        
+        /// <param name="matches">The list we add the matching runspaces to</param>        
         private void WriteOrAddMatches(List<PSSession> matchingRunspaceInfos,
             bool writeobject,
             ref Dictionary<Guid, PSSession> matches)
@@ -3015,7 +3022,7 @@ namespace Microsoft.PowerShell.Commands
             }
             else
             {
-                // will have to raise OpertionComplete from here,
+                // will have to raise OperationComplete from here,
                 // else ThrottleManager will have
                 RaiseOperationCompleteEvent();
             }
@@ -3237,7 +3244,7 @@ namespace Microsoft.PowerShell.Commands
                     break;
                 case RunspaceState.Closed:
                     {
-                        // raise a OpertionComplete event with
+                        // raise a OperationComplete event with
                         // StopComplete message 
                         if (stateEventArgs.RunspaceStateInfo.Reason != null)
                         {
@@ -3320,10 +3327,12 @@ namespace Microsoft.PowerShell.Commands
         } // RaiseOperationCompleteEvent
     } // ExecutionCmdletHelperComputerName
 
+    #region Path Resolver
+
     /// <summary>
     /// A helper class to resolve the path
     /// </summary>
-    internal class PathResolver
+    internal static class PathResolver
     {
         /// <summary>
         /// Resolves the specified path and verifies the path belongs to
@@ -3336,7 +3345,7 @@ namespace Microsoft.PowerShell.Commands
         /// <param name="allowNonexistingPaths"></param>
         /// <param name="resourceString">resource string for error when path is not from filesystem provider</param>
         /// <returns>A fully qualified string representing filename.</returns>
-        internal string ResolveProviderAndPath(string path, bool isLiteralPath, PSCmdlet cmdlet, bool allowNonexistingPaths, string resourceString)
+        internal static string ResolveProviderAndPath(string path, bool isLiteralPath, PSCmdlet cmdlet, bool allowNonexistingPaths, string resourceString)
         {
             // First resolve path
             PathInfo resolvedPath = ResolvePath(path, isLiteralPath, allowNonexistingPaths, cmdlet);
@@ -3373,7 +3382,7 @@ namespace Microsoft.PowerShell.Commands
         /// A string representing the resolved path.
         /// </returns>
         /// 
-        private PathInfo ResolvePath(
+        private static PathInfo ResolvePath(
             string pathToResolve,
             bool isLiteralPath,
             bool allowNonexistingPaths,
@@ -3465,6 +3474,8 @@ namespace Microsoft.PowerShell.Commands
             }
         } // ResolvePath
     }
+
+    #endregion
 
     #endregion Helper Classes
 }

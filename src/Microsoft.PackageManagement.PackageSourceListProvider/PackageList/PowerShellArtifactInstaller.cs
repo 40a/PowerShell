@@ -87,12 +87,12 @@ namespace Microsoft.PackageManagement.PackageSourceListProvider
           
             if (installing == null || !installing.Any())
             {
-                request.Verbose(Resources.Messages.NumberOfPackagesRecevied, 0, provider.Name, "InstallPackage");
+                request.Verbose(Resources.Messages.NumberOfPackagesReceived, 0, provider.Name, "InstallPackage");
                 request.Warning(Resources.Messages.FailToInstallPackage, Constants.ProviderName, packages[0].Name);
                 return;
             }
 
-            int packagesRecevied = 0;
+            int packagesReceived = 0;
             foreach (var i in installing)
             {
                 request.YieldSoftwareIdentity(i.FastPackageReference, i.Name, i.Version, i.VersionScheme, i.Summary, i.Source, i.SearchKey, i.FullPath, i.PackageFilename);
@@ -111,10 +111,10 @@ namespace Microsoft.PackageManagement.PackageSourceListProvider
                         request.PackageManagementService.ImportPackageProvider(request, packageJson.Name, null, null, null, isRooted: false, force: false);
                     }
                 }
-                packagesRecevied++;
+                packagesReceived++;
             }
 
-            request.Verbose(Resources.Messages.NumberOfPackagesRecevied, packagesRecevied, provider.Name, "install-package");
+            request.Verbose(Resources.Messages.NumberOfPackagesReceived, packagesReceived, provider.Name, "install-package");
         }
 
         internal static void GeInstalledPowershellArtifacts(PackageJson package, string requiredVersion, string minimumVersion, string maximumVersion, Dictionary<string, SoftwareIdentity> fastPackReftable, PackageSourceListRequest request)
@@ -136,7 +136,7 @@ namespace Microsoft.PackageManagement.PackageSourceListProvider
 
             if (packagesInstalled == null || !packagesInstalled.Any())
             {
-                request.Verbose(Resources.Messages.NumberOfPackagesRecevied, 0, provider.Name, "GetInstalledPackages");
+                request.Verbose(Resources.Messages.NumberOfPackagesReceived, 0, provider.Name, "GetInstalledPackages");
                 return;
             }          
             

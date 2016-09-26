@@ -11,7 +11,7 @@ namespace Microsoft.PowerShell.Commands
     /// A command to copy a property on an item.
     /// </summary>
     [Cmdlet(VerbsCommon.Copy, "ItemProperty", DefaultParameterSetName = "Path", SupportsShouldProcess = true, SupportsTransactions = true,
-        HelpUri = "http://go.microsoft.com/fwlink/?LinkID=113293")]
+        HelpUri = "https://go.microsoft.com/fwlink/?LinkID=113293")]
     public class CopyItemPropertyCommand : PassThroughItemPropertyCommandBase
     {
         #region Parameters
@@ -75,7 +75,7 @@ namespace Microsoft.PowerShell.Commands
         /// 
         internal override object GetDynamicParameters(CmdletProviderContext context)
         {
-            if (Path != null & Path.Length > 0)
+            if (Path != null && Path.Length > 0)
             {
                 return InvokeProvider.Property.CopyPropertyDynamicParameters(
                     Path[0],

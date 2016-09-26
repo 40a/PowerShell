@@ -14,12 +14,13 @@ Microsoft.PowerShell.Core\Set-StrictMode -Version Latest
 # Check if this is nano server. [System.Runtime.Loader.AssemblyLoadContext] is only available on NanoServer
 $script:isNanoServer = $null -ne ('System.Runtime.Loader.AssemblyLoadContext' -as [Type])
 
+function IsInbox { $PSHOME.EndsWith('\WindowsPowerShell\v1.0', [System.StringComparison]::OrdinalIgnoreCase) }
 function IsWindows { $PSVariable = Get-Variable -Name IsWindows -ErrorAction Ignore; return (-not $PSVariable -or $PSVariable.Value) }
 function IsLinux { $PSVariable = Get-Variable -Name IsLinux -ErrorAction Ignore; return ($PSVariable -and $PSVariable.Value) }
 function IsOSX { $PSVariable = Get-Variable -Name IsOSX -ErrorAction Ignore; return ($PSVariable -and $PSVariable.Value) }
 function IsCoreCLR { $PSVariable = Get-Variable -Name IsCoreCLR -ErrorAction Ignore; return ($PSVariable -and $PSVariable.Value) }
 
-if(IsWindows)
+if(IsInbox)
 {
     $script:ProgramFilesPSPath = Microsoft.PowerShell.Management\Join-Path -Path $env:ProgramFiles -ChildPath "WindowsPowerShell"
 }
@@ -28,7 +29,7 @@ else
     $script:ProgramFilesPSPath = $PSHome
 }
 
-if(IsWindows)
+if(IsInbox)
 {
     try
     {
@@ -47,6 +48,10 @@ if(IsWindows)
                                 {
                                     Microsoft.PowerShell.Management\Join-Path -Path $env:USERPROFILE -ChildPath "Documents\WindowsPowerShell"
                                 }
+}
+elseif(IsWindows)
+{
+    $script:MyDocumentsPSPath = Microsoft.PowerShell.Management\Join-Path -Path $HOME -ChildPath 'Documents\PowerShell'
 }
 else
 {
@@ -117,11 +122,11 @@ $script:NuGetProviderName = "NuGet"
 $script:NuGetProviderVersion  = [Version]'2.8.5.201'
 
 $script:SupportsPSModulesFeatureName="supports-powershell-modules"
-$script:FastPackRefHastable = @{}
+$script:FastPackRefHashtable = @{}
 $script:NuGetBinaryProgramDataPath=if(IsWindows) {"$env:ProgramFiles\PackageManagement\ProviderAssemblies"}
 $script:NuGetBinaryLocalAppDataPath=if(IsWindows) {"$env:LOCALAPPDATA\PackageManagement\ProviderAssemblies"}
 # go fwlink for 'https://nuget.org/nuget.exe'
-$script:NuGetClientSourceURL = 'http://go.microsoft.com/fwlink/?LinkID=690216&clcid=0x409'
+$script:NuGetClientSourceURL = 'https://go.microsoft.com/fwlink/?LinkID=690216&clcid=0x409'
 $script:NuGetExeName = 'NuGet.exe'
 $script:NuGetExePath = $null
 $script:NuGetProvider = $null
@@ -654,7 +659,7 @@ function Publish-Module
     #>
     [CmdletBinding(SupportsShouldProcess=$true,
                    PositionalBinding=$false,
-                   HelpUri='http://go.microsoft.com/fwlink/?LinkID=398575',
+                   HelpUri='https://go.microsoft.com/fwlink/?LinkID=398575',
                    DefaultParameterSetName="ModuleNameParameterSet")]
     Param
     (
@@ -929,7 +934,7 @@ function Publish-Module
                     return
                 }
             }
-            elseif(-not $modulePathWithVersion -and ($PSVersionTable.PSVersion -ge [Version]'5.0'))
+            elseif(-not $modulePathWithVersion -and ($PSVersionTable.PSVersion -ge '5.0.0'))
             {
                 $module = Microsoft.PowerShell.Core\Get-Module -Name $resolvedPath -ListAvailable -ErrorAction SilentlyContinue -Verbose:$false
             }
@@ -1151,7 +1156,7 @@ function Find-Module
     <#
     .ExternalHelp PSGet.psm1-help.xml
     #>
-    [CmdletBinding(HelpUri='http://go.microsoft.com/fwlink/?LinkID=398574')]
+    [CmdletBinding(HelpUri='https://go.microsoft.com/fwlink/?LinkID=398574')]
     [outputtype("PSCustomObject[]")]
     Param
     (
@@ -1321,7 +1326,7 @@ function Save-Module
     .ExternalHelp PSGet.psm1-help.xml
     #>
     [CmdletBinding(DefaultParameterSetName='NameAndPathParameterSet',
-                   HelpUri='http://go.microsoft.com/fwlink/?LinkId=531351',
+                   HelpUri='https://go.microsoft.com/fwlink/?LinkId=531351',
                    SupportsShouldProcess=$true)]
     Param
     (
@@ -1565,7 +1570,7 @@ function Install-Module
     .ExternalHelp PSGet.psm1-help.xml
     #>
     [CmdletBinding(DefaultParameterSetName='NameParameterSet',
-                   HelpUri='http://go.microsoft.com/fwlink/?LinkID=398573',
+                   HelpUri='https://go.microsoft.com/fwlink/?LinkID=398573',
                    SupportsShouldProcess=$true)]
     Param
     (
@@ -1783,7 +1788,7 @@ function Install-Module
     	                    if(-not($YesToAll -or $NoToAll -or $SourceSGrantedTrust.Contains($source) -or $sourcesDeniedTrust.Contains($source) -or $Force))   
                             {
 	                            $message = $QueryInstallUntrustedPackage -f ($psgetModuleInfo.Name, $psgetModuleInfo.RepositorySourceLocation)
-                                if($PSVersionTable.PSVersion -ge [Version]"5.0")
+                                if($PSVersionTable.PSVersion -ge '5.0.0')
                                 {
                                      $sourceTrusted = $psCmdlet.ShouldContinue("$message", "$RepositoryIsNotTrusted",$true, [ref]$YesToAll, [ref]$NoToAll)
                                 }
@@ -1821,7 +1826,7 @@ function Update-Module
     .ExternalHelp PSGet.psm1-help.xml
     #>
     [CmdletBinding(SupportsShouldProcess=$true,
-                   HelpUri='http://go.microsoft.com/fwlink/?LinkID=398576')]
+                   HelpUri='https://go.microsoft.com/fwlink/?LinkID=398576')]
     Param
     (
         [Parameter(ValueFromPipelineByPropertyName=$true, 
@@ -1995,7 +2000,7 @@ function Uninstall-Module
     #>
     [CmdletBinding(DefaultParameterSetName='NameParameterSet',
                    SupportsShouldProcess=$true,
-                   HelpUri='http://go.microsoft.com/fwlink/?LinkId=526864')]
+                   HelpUri='https://go.microsoft.com/fwlink/?LinkId=526864')]
     Param
     (
         [Parameter(ValueFromPipelineByPropertyName=$true,
@@ -2098,7 +2103,7 @@ function Get-InstalledModule
     <#
     .ExternalHelp PSGet.psm1-help.xml
     #>
-    [CmdletBinding(HelpUri='http://go.microsoft.com/fwlink/?LinkId=526863')]
+    [CmdletBinding(HelpUri='https://go.microsoft.com/fwlink/?LinkId=526863')]
     Param
     (
         [Parameter(ValueFromPipelineByPropertyName=$true, 
@@ -2153,14 +2158,14 @@ function Get-InstalledModule
 
 #endregion *-Module cmdlets
 
-#region Find-DscResouce cmdlet
+#region Find-DscResource cmdlet
 
 function Find-DscResource
 {
     <#
     .ExternalHelp PSGet.psm1-help.xml
     #>
-    [CmdletBinding(HelpUri = 'http://go.microsoft.com/fwlink/?LinkId=517196')]
+    [CmdletBinding(HelpUri = 'https://go.microsoft.com/fwlink/?LinkId=517196')]
     [outputtype('PSCustomObject[]')]
     Param
     (
@@ -2259,7 +2264,7 @@ function Find-DscResource
     }
 }
 
-#endregion Find-DscResouce cmdlet
+#endregion Find-DscResource cmdlet
 
 #region Find-Command cmdlet
 
@@ -2268,7 +2273,7 @@ function Find-Command
     <#
     .ExternalHelp PSGet.psm1-help.xml
     #>
-    [CmdletBinding(HelpUri = 'http://go.microsoft.com/fwlink/?LinkId=733636')]
+    [CmdletBinding(HelpUri = 'https://go.microsoft.com/fwlink/?LinkId=733636')]
     [outputtype('PSCustomObject[]')]
     Param
     (
@@ -2378,7 +2383,7 @@ function Find-RoleCapability
     <#
     .ExternalHelp PSGet.psm1-help.xml
     #>
-    [CmdletBinding(HelpUri = 'http://go.microsoft.com/fwlink/?LinkId=718029')]
+    [CmdletBinding(HelpUri = 'https://go.microsoft.com/fwlink/?LinkId=718029')]
     [outputtype('PSCustomObject[]')]
     Param
     (
@@ -2488,7 +2493,7 @@ function Publish-Script
     [CmdletBinding(SupportsShouldProcess=$true,
                    PositionalBinding=$false,
                    DefaultParameterSetName='PathParameterSet',
-                   HelpUri='http://go.microsoft.com/fwlink/?LinkId=619788')]
+                   HelpUri='https://go.microsoft.com/fwlink/?LinkId=619788')]
     Param
     (
         [Parameter(Mandatory=$true, 
@@ -2791,7 +2796,7 @@ function Find-Script
     <#
     .ExternalHelp PSGet.psm1-help.xml
     #>
-    [CmdletBinding(HelpUri='http://go.microsoft.com/fwlink/?LinkId=619785')]
+    [CmdletBinding(HelpUri='https://go.microsoft.com/fwlink/?LinkId=619785')]
     [outputtype("PSCustomObject[]")]
     Param
     (
@@ -2936,7 +2941,7 @@ function Find-Script
             $psgalleryRepo = Get-PSRepository -Name $Script:PSGalleryModuleSource `
                                               -ErrorAction SilentlyContinue `
                                               -WarningAction SilentlyContinue
-            # And check for IsDeafult?
+            # And check for IsDefault?
             if($psgalleryRepo)
             {
                 $isRepositoryNullOrPSGallerySpecified = $true
@@ -2972,7 +2977,7 @@ function Save-Script
     .ExternalHelp PSGet.psm1-help.xml
     #>
     [CmdletBinding(DefaultParameterSetName='NameAndPathParameterSet',
-                   HelpUri='http://go.microsoft.com/fwlink/?LinkId=619786',
+                   HelpUri='https://go.microsoft.com/fwlink/?LinkId=619786',
                    SupportsShouldProcess=$true)]
     Param
     (
@@ -3230,7 +3235,7 @@ function Install-Script
     .ExternalHelp PSGet.psm1-help.xml
     #>
     [CmdletBinding(DefaultParameterSetName='NameParameterSet',
-                   HelpUri='http://go.microsoft.com/fwlink/?LinkId=619784',
+                   HelpUri='https://go.microsoft.com/fwlink/?LinkId=619784',
                    SupportsShouldProcess=$true)]
     Param
     (
@@ -3308,12 +3313,12 @@ function Install-Script
         if(-not (Test-RunningAsElevated) -and ($Scope -ne "CurrentUser"))
         {
             # Throw an error when Install-Script is used as a non-admin user and '-Scope CurrentUser' is not specified
-            $AdminPreviligeErrorMessage = $LocalizedData.InstallScriptNeedsCurrentUserScopeParameterForNonAdminUser -f @($script:ProgramFilesScriptsPath, $script:MyDocumentsScriptsPath)
-            $AdminPreviligeErrorId = 'InstallScriptNeedsCurrentUserScopeParameterForNonAdminUser'
+            $AdminPrivilegeErrorMessage = $LocalizedData.InstallScriptNeedsCurrentUserScopeParameterForNonAdminUser -f @($script:ProgramFilesScriptsPath, $script:MyDocumentsScriptsPath)
+            $AdminPrivilegeErrorId = 'InstallScriptNeedsCurrentUserScopeParameterForNonAdminUser'
 
             ThrowError -ExceptionName "System.ArgumentException" `
-                        -ExceptionMessage $AdminPreviligeErrorMessage `
-                        -ErrorId $AdminPreviligeErrorId `
+                        -ExceptionMessage $AdminPrivilegeErrorMessage `
+                        -ErrorId $AdminPrivilegeErrorId `
                         -CallerPSCmdlet $PSCmdlet `
                         -ErrorCategory InvalidArgument
         }
@@ -3509,7 +3514,7 @@ function Install-Script
                             {
                                 $message = $QueryInstallUntrustedPackage -f ($psRepositoryItemInfo.Name, $psRepositoryItemInfo.RepositorySourceLocation)
                             
-                                if($PSVersionTable.PSVersion -ge [Version]"5.0")
+                                if($PSVersionTable.PSVersion -ge '5.0.0')
                                 {
                                     $sourceTrusted = $psCmdlet.ShouldContinue("$message", "$RepositoryIsNotTrusted",$true, [ref]$YesToAll, [ref]$NoToAll)
                                 }
@@ -3546,7 +3551,7 @@ function Update-Script
     .ExternalHelp PSGet.psm1-help.xml
     #>
     [CmdletBinding(SupportsShouldProcess=$true,
-                   HelpUri='http://go.microsoft.com/fwlink/?LinkId=619787')]
+                   HelpUri='https://go.microsoft.com/fwlink/?LinkId=619787')]
     Param
     (
         [Parameter(ValueFromPipelineByPropertyName=$true, 
@@ -3748,7 +3753,7 @@ function Uninstall-Script
     #>
     [CmdletBinding(DefaultParameterSetName='NameParameterSet',
                    SupportsShouldProcess=$true,
-                   HelpUri='http://go.microsoft.com/fwlink/?LinkId=619789')]
+                   HelpUri='https://go.microsoft.com/fwlink/?LinkId=619789')]
     Param
     (
         [Parameter(ValueFromPipelineByPropertyName=$true,
@@ -3846,7 +3851,7 @@ function Get-InstalledScript
     <#
     .ExternalHelp PSGet.psm1-help.xml
     #>
-    [CmdletBinding(HelpUri='http://go.microsoft.com/fwlink/?LinkId=619790')]
+    [CmdletBinding(HelpUri='https://go.microsoft.com/fwlink/?LinkId=619790')]
     Param
     (
         [Parameter(ValueFromPipelineByPropertyName=$true, 
@@ -3904,7 +3909,7 @@ function Register-PSRepository
     .ExternalHelp PSGet.psm1-help.xml
     #>
     [CmdletBinding(DefaultParameterSetName='NameParameterSet',
-                   HelpUri='http://go.microsoft.com/fwlink/?LinkID=517129')]
+                   HelpUri='https://go.microsoft.com/fwlink/?LinkID=517129')]
     Param 
     (
         [Parameter(Mandatory=$true,
@@ -3970,17 +3975,17 @@ function Register-PSRepository
     {
         if (Get-Variable -Name SourceLocation -ErrorAction SilentlyContinue)
         {
-            Set-Variable -Name selctedProviderName -value $null -Scope 1
+            Set-Variable -Name selectedProviderName -value $null -Scope 1
 
             if(Get-Variable -Name PackageManagementProvider -ErrorAction SilentlyContinue)
             {
-                $selctedProviderName = $PackageManagementProvider
-                $null = Get-DynamicParameters -Location $SourceLocation -PackageManagementProvider ([REF]$selctedProviderName)
+                $selectedProviderName = $PackageManagementProvider
+                $null = Get-DynamicParameters -Location $SourceLocation -PackageManagementProvider ([REF]$selectedProviderName)
             }
             else
             {
-                $dynamicParameters = Get-DynamicParameters -Location $SourceLocation -PackageManagementProvider ([REF]$selctedProviderName)
-                Set-Variable -Name PackageManagementProvider -Value $selctedProviderName -Scope 1
+                $dynamicParameters = Get-DynamicParameters -Location $SourceLocation -PackageManagementProvider ([REF]$selectedProviderName)
+                Set-Variable -Name PackageManagementProvider -Value $selectedProviderName -Scope 1
                 $null = $dynamicParameters
             }
         }
@@ -4062,9 +4067,9 @@ function Register-PSRepository
             {            
                 $providerName = $PackageManagementProvider
             }
-            elseif($selctedProviderName)
+            elseif($selectedProviderName)
             {
-                $providerName = $selctedProviderName
+                $providerName = $selectedProviderName
             }
             else
             {
@@ -4114,7 +4119,7 @@ function Set-PSRepository
     .ExternalHelp PSGet.psm1-help.xml
     #>
     [CmdletBinding(PositionalBinding=$false,
-                   HelpUri='http://go.microsoft.com/fwlink/?LinkID=517128')]
+                   HelpUri='https://go.microsoft.com/fwlink/?LinkID=517128')]
     Param
     (
         [Parameter(Mandatory=$true, Position=0)]
@@ -4313,7 +4318,7 @@ function Unregister-PSRepository
     <#
     .ExternalHelp PSGet.psm1-help.xml
     #>
-    [CmdletBinding(HelpUri='http://go.microsoft.com/fwlink/?LinkID=517130')]
+    [CmdletBinding(HelpUri='https://go.microsoft.com/fwlink/?LinkID=517130')]
     Param
     (
         [Parameter(ValueFromPipelineByPropertyName=$true,
@@ -4357,7 +4362,7 @@ function Get-PSRepository
     <#
     .ExternalHelp PSGet.psm1-help.xml
     #>
-    [CmdletBinding(HelpUri='http://go.microsoft.com/fwlink/?LinkID=517127')]
+    [CmdletBinding(HelpUri='https://go.microsoft.com/fwlink/?LinkID=517127')]
     Param
     (
         [Parameter(ValueFromPipelineByPropertyName=$true)]
@@ -4455,7 +4460,7 @@ function Test-ScriptFileInfo
     #>
     [CmdletBinding(PositionalBinding=$false,
                    DefaultParameterSetName='PathParameterSet',
-                   HelpUri='http://go.microsoft.com/fwlink/?LinkId=619791')]
+                   HelpUri='https://go.microsoft.com/fwlink/?LinkId=619791')]
     Param
     (
         [Parameter(Mandatory=$true,
@@ -4531,23 +4536,23 @@ function Test-ScriptFileInfo
 
         $notSupportedOnNanoErrorIds = @('WorkflowNotSupportedInPowerShellCore',
                                         'ConfigurationNotSupportedInPowerShellCore')
-        $errosAfterSkippingOneCoreErrors = $errors | Microsoft.PowerShell.Core\Where-Object { $notSupportedOnNanoErrorIds -notcontains $_.ErrorId}
+        $errorsAfterSkippingOneCoreErrors = $errors | Microsoft.PowerShell.Core\Where-Object { $notSupportedOnNanoErrorIds -notcontains $_.ErrorId}
 
-        if($errosAfterSkippingOneCoreErrors)
+        if($errorsAfterSkippingOneCoreErrors)
         {
             $errorMessage = ($LocalizedData.ScriptParseError -f $scriptFilePath)
             ThrowError  -ExceptionName "System.ArgumentException" `
                         -ExceptionMessage $errorMessage `
                         -ErrorId "ScriptParseError" `
                         -CallerPSCmdlet $PSCmdlet `
-                        -ExceptionObject $errosAfterSkippingOneCoreErrors `
+                        -ExceptionObject $errorsAfterSkippingOneCoreErrors `
                         -ErrorCategory InvalidArgument
             return
         }
 
         if($ast)
         {
-            # Get the block/group comment begining with <#PSScriptInfo
+            # Get the block/group comment beginning with <#PSScriptInfo
             $CommentTokens = $tokens | Microsoft.PowerShell.Core\Where-Object {$_.Kind -eq 'Comment'}
 
             $psscriptInfoComments = $CommentTokens | 
@@ -4788,7 +4793,7 @@ function New-ScriptFileInfo
     #>
     [CmdletBinding(PositionalBinding=$false,
                    SupportsShouldProcess=$true,
-                   HelpUri='http://go.microsoft.com/fwlink/?LinkId=619792')]
+                   HelpUri='https://go.microsoft.com/fwlink/?LinkId=619792')]
     Param
     (
         [Parameter(Mandatory=$false,
@@ -5029,7 +5034,7 @@ function Update-ScriptFileInfo
     [CmdletBinding(PositionalBinding=$false,
                    DefaultParameterSetName='PathParameterSet',
                    SupportsShouldProcess=$true,
-                   HelpUri='http://go.microsoft.com/fwlink/?LinkId=619793')]
+                   HelpUri='https://go.microsoft.com/fwlink/?LinkId=619793')]
     Param
     (
         [Parameter(Mandatory=$true,
@@ -5580,7 +5585,7 @@ function Get-RequiresString
                         $RequiredModuleStrings += "@{$($keyvalueStrings -join '; ')}"
                     }
                 }
-                elseif(($PSVersionTable.PSVersion -eq [Version]'3.0') -and
+                elseif(($PSVersionTable.PSVersion -eq '3.0.0') -and
                        ($requiredModuleObject.GetType().ToString() -eq 'Microsoft.PowerShell.Commands.ModuleSpecification'))
                 {
                     # ModuleSpecification.ToString() is not implemented on PowerShell 3.0.
@@ -6655,7 +6660,7 @@ function Set-ModuleSourcesVariable
             }
         }
 
-        # Already registed repositories may not have the ScriptSourceLocation property, try to populate it from the existing SourceLocation
+        # Already registered repositories may not have the ScriptSourceLocation property, try to populate it from the existing SourceLocation
         # Also populate the PublishLocation and ScriptPublishLocation from the SourceLocation if PublishLocation is empty/null.
         # 
         $script:PSGetModuleSources.Keys | Microsoft.PowerShell.Core\ForEach-Object { 
@@ -8930,7 +8935,7 @@ function Add-PackageSource
 
     if($Name -eq $Script:PSGalleryModuleSource)
     {
-        # Add or update the PSGallery repostory
+        # Add or update the PSGallery repository
         $repository = Set-PSGalleryRepository -Trusted:$Trusted
 
         if($repository)
@@ -10048,7 +10053,7 @@ function Find-Package
 																	-Type $artifactType `
 																	-request $request
 				
-								$script:FastPackRefHastable[$fastPackageReference] = $pkg
+								$script:FastPackRefHashtable[$fastPackageReference] = $pkg
 	
 								Write-Output -InputObject $sid
 							}
@@ -10142,22 +10147,22 @@ function Install-PackageUtility
         $packageName = $parts[1]
         $version = $parts[2]
         $sourceLocation= $parts[3]
-        $artfactType = $parts[4]
+        $artifactType = $parts[4]
 
         # The default destination location for Modules and Scripts is ProgramFiles path
         $scriptDestination = $script:ProgramFilesScriptsPath
         $moduleDestination = $script:programFilesModulesPath
         $Scope = 'AllUsers'
 
-        if($artfactType -eq $script:PSArtifactTypeScript)
+        if($artifactType -eq $script:PSArtifactTypeScript)
         {
-            $AdminPreviligeErrorMessage = $LocalizedData.InstallScriptNeedsCurrentUserScopeParameterForNonAdminUser -f @($script:ProgramFilesScriptsPath, $script:MyDocumentsScriptsPath)
-            $AdminPreviligeErrorId = 'InstallScriptNeedsCurrentUserScopeParameterForNonAdminUser'
+            $AdminPrivilegeErrorMessage = $LocalizedData.InstallScriptNeedsCurrentUserScopeParameterForNonAdminUser -f @($script:ProgramFilesScriptsPath, $script:MyDocumentsScriptsPath)
+            $AdminPrivilegeErrorId = 'InstallScriptNeedsCurrentUserScopeParameterForNonAdminUser'
         }
         else
         {
-            $AdminPreviligeErrorMessage = $LocalizedData.InstallModuleNeedsCurrentUserScopeParameterForNonAdminUser -f @($script:programFilesModulesPath, $script:MyDocumentsModulesPath)
-            $AdminPreviligeErrorId = 'InstallModuleNeedsCurrentUserScopeParameterForNonAdminUser'
+            $AdminPrivilegeErrorMessage = $LocalizedData.InstallModuleNeedsCurrentUserScopeParameterForNonAdminUser -f @($script:programFilesModulesPath, $script:MyDocumentsModulesPath)
+            $AdminPrivilegeErrorId = 'InstallModuleNeedsCurrentUserScopeParameterForNonAdminUser'
         }
 
         $installUpdate = $false
@@ -10190,8 +10195,8 @@ function Install-PackageUtility
                     {
                         # Throw an error when Install-Module/Script is used as a non-admin user and '-Scope CurrentUser' is not specified
                         ThrowError -ExceptionName "System.ArgumentException" `
-                                    -ExceptionMessage $AdminPreviligeErrorMessage `
-                                    -ErrorId $AdminPreviligeErrorId `
+                                    -ExceptionMessage $AdminPrivilegeErrorMessage `
+                                    -ErrorId $AdminPrivilegeErrorId `
                                     -CallerPSCmdlet $PSCmdlet `
                                     -ErrorCategory InvalidArgument
                     }
@@ -10209,8 +10214,8 @@ function Install-PackageUtility
             elseif(-not (Test-RunningAsElevated))
             {
                 ThrowError -ExceptionName "System.ArgumentException" `
-                           -ExceptionMessage $AdminPreviligeErrorMessage `
-                           -ErrorId $AdminPreviligeErrorId `
+                           -ExceptionMessage $AdminPrivilegeErrorMessage `
+                           -ErrorId $AdminPrivilegeErrorId `
                            -CallerPSCmdlet $PSCmdlet `
                            -ErrorCategory InvalidArgument
             }
@@ -10327,7 +10332,7 @@ function Install-PackageUtility
                 }
             }            
 
-            if($Scope -and ($artfactType -eq $script:PSArtifactTypeScript) -and (-not $installUpdate))
+            if($Scope -and ($artifactType -eq $script:PSArtifactTypeScript) -and (-not $installUpdate))
             {
                 ValidateAndSet-PATHVariableIfUserAccepts -Scope $Scope `
                                                          -ScopePath $scriptDestination `
@@ -10336,7 +10341,7 @@ function Install-PackageUtility
                                                          -Force:$Force
             }
 
-            if($artfactType -eq $script:PSArtifactTypeModule)
+            if($artifactType -eq $script:PSArtifactTypeModule)
             {
                 $message = $LocalizedData.ModuleDestination -f @($moduleDestination)
             }
@@ -10347,9 +10352,9 @@ function Install-PackageUtility
             Write-Verbose $message            
         }
 
-        Write-Debug "ArtfactType is $artfactType"
+        Write-Debug "ArtifactType is $artifactType"
 
-        if($artfactType -eq $script:PSArtifactTypeModule)
+        if($artifactType -eq $script:PSArtifactTypeModule)
         {
             # Test if module is already installed
             $InstalledModuleInfo = if(-not $IsSavePackage){ Test-ModuleInstalled -Name $packageName -RequiredVersion $RequiredVersion }
@@ -10374,7 +10379,7 @@ function Install-PackageUtility
                         if( (-not $MinimumVersion -and ($version -ne $InstalledModuleInfo.Version)) -or 
                             ($MinimumVersion -and ($MinimumVersion -gt $InstalledModuleInfo.Version)))
                         {
-                            if($PSVersionTable.PSVersion -ge [Version]"5.0")
+                            if($PSVersionTable.PSVersion -ge '5.0.0')
                             {
                                 $message = $LocalizedData.ModuleAlreadyInstalledSxS -f ($InstalledModuleInfo.Version, $InstalledModuleInfo.Name, $InstalledModuleInfo.ModuleBase, $version, $InstalledModuleInfo.Version, $version)                            
                             }
@@ -10410,7 +10415,7 @@ function Install-PackageUtility
             }
         }
 
-        if($artfactType -eq $script:PSArtifactTypeScript)
+        if($artifactType -eq $script:PSArtifactTypeScript)
         {
             # Test if script is already installed
             $InstalledScriptInfo = if(-not $IsSavePackage){ Test-ScriptInstalled -Name $packageName }
@@ -10490,7 +10495,7 @@ function Install-PackageUtility
             Write-Verbose ($LocalizedData.SpecifiedLocationAndOGP -f ($provider.ProviderName, $providerName))
 
             $InstalledItemsList = $null
-            $pkg = $script:FastPackRefHastable[$fastPackageReference]
+            $pkg = $script:FastPackRefHashtable[$fastPackageReference]
 
             # If an item has dependencies, prepare the list of installed items and 
             # pass it to the NuGet provider to not download the already installed items.
@@ -10501,7 +10506,7 @@ function Install-PackageUtility
                 $InstalledItemsList = Microsoft.PowerShell.Core\Get-Module -ListAvailable | 
                                         Microsoft.PowerShell.Core\ForEach-Object {"$($_.Name)!#!$($_.Version)".ToLower()}
 
-                if($artfactType -eq $script:PSArtifactTypeScript)
+                if($artifactType -eq $script:PSArtifactTypeScript)
                 {
                     $InstalledItemsList += $script:PSGetInstalledScripts.GetEnumerator() | 
                                                Microsoft.PowerShell.Core\ForEach-Object { 
@@ -10529,7 +10534,7 @@ function Install-PackageUtility
 
             $newRequest = $request.CloneRequest( $ProviderOptions, @($SourceLocation), $request.Credential )
 
-            if($artfactType -eq $script:PSArtifactTypeModule)
+            if($artifactType -eq $script:PSArtifactTypeModule)
             {
                 $message = $LocalizedData.DownloadingModuleFromGallery -f ($packageName, $version, $sourceLocation)
             }
@@ -10539,7 +10544,7 @@ function Install-PackageUtility
             }
             Write-Verbose $message
 
-            $installedPkgs = $provider.InstallPackage($script:FastPackRefHastable[$fastPackageReference], $newRequest)
+            $installedPkgs = $provider.InstallPackage($script:FastPackRefHashtable[$fastPackageReference], $newRequest)
 
             foreach($pkg in $installedPkgs)
             {
@@ -10550,7 +10555,7 @@ function Install-PackageUtility
 
                 $destinationModulePath = Microsoft.PowerShell.Management\Join-Path -Path $moduleDestination -ChildPath $pkg.Name
 
-                # Side-by-Side module version is avialable on PowerShell 5.0 or later versions only
+                # Side-by-Side module version is available on PowerShell 5.0 or later versions only
                 # By default, PowerShell module versions will be installed/updated Side-by-Side.
                 if(Test-ModuleSxSVersionSupport)
                 {
@@ -10952,7 +10957,7 @@ function Uninstall-Package
         $packageName = $parts[1]
         $version = $parts[2]
         $sourceLocation= $parts[3]
-        $artfactType = $parts[4]
+        $artifactType = $parts[4]
 
         if($request.IsCanceled)
         {
@@ -10976,7 +10981,7 @@ function Uninstall-Package
             }
         }
 
-        if($artfactType -eq $script:PSArtifactTypeModule)
+        if($artifactType -eq $script:PSArtifactTypeModule)
         {
             $moduleName = $packageName
             $InstalledModuleInfo = $script:PSGetInstalledModules["$($moduleName)$($version)"] 
@@ -11117,7 +11122,7 @@ function Uninstall-Package
 
             Write-Output -InputObject $InstalledModuleInfo.SoftwareIdentity
         }
-        elseif($artfactType -eq $script:PSArtifactTypeScript)
+        elseif($artifactType -eq $script:PSArtifactTypeScript)
         {
             $scriptName = $packageName
             $InstalledScriptInfo = $script:PSGetInstalledScripts["$($scriptName)$($version)"] 
@@ -11184,7 +11189,7 @@ function Uninstall-Package
             $scriptFilePath = Microsoft.PowerShell.Management\Join-Path -Path $scriptBase `
                                                                         -ChildPath "$($scriptName).ps1"
 
-            $installledScriptInfoFilePath = Microsoft.PowerShell.Management\Join-Path -Path $installedScriptInfoPath `
+            $installedScriptInfoFilePath = Microsoft.PowerShell.Management\Join-Path -Path $installedScriptInfoPath `
                                                                                       -ChildPath "$($scriptName)_$($script:InstalledScriptInfoFileName)" 
 
             # Remove the script file and it's corresponding InstalledScriptInfo.xml
@@ -11197,9 +11202,9 @@ function Uninstall-Package
                                                             -Confirm:$false -WhatIf:$false
             }
 
-            if(Microsoft.PowerShell.Management\Test-Path -Path $installledScriptInfoFilePath -PathType Leaf)
+            if(Microsoft.PowerShell.Management\Test-Path -Path $installedScriptInfoFilePath -PathType Leaf)
             {
-                Microsoft.PowerShell.Management\Remove-Item -Path $installledScriptInfoFilePath `
+                Microsoft.PowerShell.Management\Remove-Item -Path $installedScriptInfoFilePath `
                                                             -Force `
                                                             -ErrorAction SilentlyContinue `
                                                             -WarningAction SilentlyContinue `
@@ -12232,9 +12237,9 @@ function Save-ModuleSources
 
 function Test-ModuleSxSVersionSupport
 {
-    # Side-by-Side module version is avialable on PowerShell 5.0 or later versions only
+    # Side-by-Side module version is available on PowerShell 5.0 or later versions only
     # By default, PowerShell module versions will be installed/updated Side-by-Side.
-    $PSVersionTable.PSVersion -ge [Version]"5.0"
+    $PSVersionTable.PSVersion -ge '5.0.0'
 }
 
 function Test-ModuleInstalled
@@ -12491,7 +12496,7 @@ function Update-ModuleManifest
 #>
 [CmdletBinding(SupportsShouldProcess=$true,
                    PositionalBinding=$false,
-                   HelpUri='http://go.microsoft.com/fwlink/?LinkId=619311')]
+                   HelpUri='https://go.microsoft.com/fwlink/?LinkId=619311')]
     Param
     (
         [Parameter(Mandatory=$true,
@@ -12826,7 +12831,7 @@ function Update-ModuleManifest
     {
         $params.Add("ProcessorArchitecture",$ProcessorArchitecture)
     }
-    #Check if ProcessorArchitecture has a value and is not 'None' on lower verison PS
+    #Check if ProcessorArchitecture has a value and is not 'None' on lower version PS
     elseif($moduleInfo.ProcessorArchitecture -and $moduleInfo.ProcessorArchitecture -ne 'None')
     {
         $params.Add("ProcessorArchitecture",$moduleInfo.ProcessorArchitecture)
@@ -13008,8 +13013,8 @@ function Update-ModuleManifest
     {
         #DscResourcesToExport field is not available in PowerShell version lower than 5.0
         
-        if  (($PSVersionTable.PSVersion -lt [Version]"5.0") -or ($PowerShellVersion -and $PowerShellVersion -lt [Version]"5.0") `
-             -or (-not $PowerShellVersion -and $moduleInfo.PowerShellVersion -and $moduleInfo.PowerShellVersion -lt [Version]"5.0") `
+        if  (($PSVersionTable.PSVersion -lt '5.0.0') -or ($PowerShellVersion -and $PowerShellVersion -lt '5.0') `
+             -or (-not $PowerShellVersion -and $moduleInfo.PowerShellVersion -and $moduleInfo.PowerShellVersion -lt '5.0') `
              -or (-not $PowerShellVersion -and -not $moduleInfo.PowerShellVersion))
         {
                 ThrowError -ExceptionName "System.ArgumentException" `
@@ -13035,8 +13040,8 @@ function Update-ModuleManifest
     {
         # CompatiblePSEditions field is not available in PowerShell version lower than 5.1
         #
-        if  (($PSVersionTable.PSVersion -lt [Version]'5.1') -or ($PowerShellVersion -and $PowerShellVersion -lt [Version]'5.1') `
-             -or (-not $PowerShellVersion -and $moduleInfo.PowerShellVersion -and $moduleInfo.PowerShellVersion -lt [Version]'5.1') `
+        if  (($PSVersionTable.PSVersion -lt '5.1.0') -or ($PowerShellVersion -and $PowerShellVersion -lt '5.1') `
+             -or (-not $PowerShellVersion -and $moduleInfo.PowerShellVersion -and $moduleInfo.PowerShellVersion -lt '5.1') `
              -or (-not $PowerShellVersion -and -not $moduleInfo.PowerShellVersion))
         {
                 ThrowError -ExceptionName 'System.ArgumentException' `
@@ -13237,7 +13242,7 @@ function Update-ModuleManifest
         }
         $PrivateDataInput = Get-PrivateData -PrivateData $Data
         
-        #Repleace the PrivateData section by first locating the linenumbers of start line and endline.  
+        #Replace the PrivateData section by first locating the linenumbers of start line and endline.  
         $PrivateDataBegin = Select-String -Path $tempPath -Pattern "PrivateData ="
         $PrivateDataBeginLine = $PrivateDataBegin.LineNumber
     

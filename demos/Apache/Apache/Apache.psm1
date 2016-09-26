@@ -28,7 +28,7 @@ Function CleanInputString([string]$inputStr){
     $outputStr
 }
 
-#EndRegion utilty functions
+#EndRegion utility functions
 
 #Region Class specifications
 
@@ -206,7 +206,7 @@ Function Restart-ApacheHTTPServer{
    [switch]$Graceful
    )
 
-    if ($Graceful -eq $null){$Graceful = $fase}
+    if ($Graceful -eq $null){$Graceful = $false}
     $cmd = GetApacheCmd
         if ($Graceful){
                 & $global:sudocmd $cmd  -k graceful

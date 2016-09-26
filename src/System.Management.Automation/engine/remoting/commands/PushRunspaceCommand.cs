@@ -21,7 +21,7 @@ namespace Microsoft.PowerShell.Commands
     /// Enter-PSSession cmdlet.
     /// </summary>
     [Cmdlet(VerbsCommon.Enter, "PSSession", DefaultParameterSetName = "ComputerName",
-        HelpUri = "http://go.microsoft.com/fwlink/?LinkID=135210", RemotingCapability = RemotingCapability.OwnedByCommand)]
+        HelpUri = "https://go.microsoft.com/fwlink/?LinkID=135210", RemotingCapability = RemotingCapability.OwnedByCommand)]
     public class EnterPSSessionCommand : PSRemotingBaseCmdlet
     {
         #region Strings
@@ -1248,7 +1248,7 @@ namespace Microsoft.PowerShell.Commands
         /// </summary>
         private RemoteRunspace GetRunspaceForSSHSession()
         {
-            var sshConnectionInfo = new SSHConnectionInfo(this.UserName, this.HostName, this.KeyPath);
+            var sshConnectionInfo = new SSHConnectionInfo(this.UserName, this.HostName, this.KeyFilePath);
             var typeTable = TypeTable.LoadDefaultTypeFiles();
             var remoteRunspace = RunspaceFactory.CreateRunspace(sshConnectionInfo, this.Host, typeTable) as RemoteRunspace;
             remoteRunspace.Open();

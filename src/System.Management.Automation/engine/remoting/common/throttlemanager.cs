@@ -64,10 +64,10 @@ namespace System.Management.Automation.Remoting
     internal abstract class IThrottleOperation
     {
         /// <summary>
-        /// This method should handle the actual operation whcih need to be
+        /// This method should handle the actual operation which need to be
         /// controlled and performed. Examples of this can be Opening remote
         /// runspace, invoking expression in a remote runspace, etc. Once 
-        /// an event is successfully recieved as a result of this function,
+        /// an event is successfully received as a result of this function,
         /// the handler has to ensure that it raises an OperationComplete
         /// event with StartComplete or StopComplete for the throttle manager
         /// to handle
@@ -80,7 +80,7 @@ namespace System.Management.Automation.Remoting
         /// remote runspaces, the user might hit ctrl-C. In which case, the 
         /// pending runspaces to be opened will actually be signalled through
         /// this method to stop operation and return back. This method also
-        /// needs to be asynchronous. Once an event is successfully recieved
+        /// needs to be asynchronous. Once an event is successfully received
         /// as a result of this function, the handler has to ensure that it
         /// raises an OperationComplete event with StopComplete for the 
         /// throttle manager to handle. It is important that this function
@@ -91,11 +91,11 @@ namespace System.Management.Automation.Remoting
 
         /// <summary>
         /// Event which will be triggered when the operation is complete. It is
-        /// assumed that all the operations perfomed by StartOperation and 
+        /// assumed that all the operations performed by StartOperation and 
         /// StopOperation are asynchronous. The submitter of operations may 
-        /// subscribe to this event to know when its complete (or it can handle 
+        /// subscribe to this event to know when it's complete (or it can handle 
         /// the synchronization with its scheduler) and the throttle 
-        /// manager will subscribe to this event to know that its complete 
+        /// manager will subscribe to this event to know that it's complete 
         /// and to start the operation on the next item.
         /// </summary>
         internal abstract event EventHandler<OperationStateEventArgs> OperationComplete;
@@ -107,7 +107,7 @@ namespace System.Management.Automation.Remoting
         /// In the initial implementation of ThrottleManager stopping 
         /// individual operations was not supported. When the support 
         /// for stopping individual operations was added, there was 
-        /// the following problem - if an opertaion is not there in 
+        /// the following problem - if an operation is not there in 
         /// the pending queue and in the startOperationQueue as well, 
         /// then the following two scenarios are possible
         ///      (a) Operation was started and start completed
@@ -139,7 +139,7 @@ namespace System.Management.Automation.Remoting
     /// <summary>
     /// Class which handles the throttling operations. This class is singleton and therefore
     /// when used either across cmdlets or at the infrastructure level it will ensure that
-    /// there aren't more operations by way of accumalation than what is intended by design.
+    /// there aren't more operations by way of accumulation than what is intended by design.
     /// 
     /// This class contains a queue of items, each of which has the 
     /// <see cref="System.Management.Automation.Remoting.IThrottleOperation">
@@ -420,8 +420,8 @@ namespace System.Management.Automation.Remoting
         /// which triggered this method</param>
         private void OperationCompleteHandler(object source, OperationStateEventArgs stateEventArgs)
         {
-            // An item has completed operation. If its a start operation which completed
-            // remove the instance from the startOperationqueue. If its a stop operation 
+            // An item has completed operation. If it's a start operation which completed
+            // remove the instance from the startOperationqueue. If it's a stop operation 
             // which completed, then remove the instance from both queues
             lock (_syncObject)
             {
@@ -467,7 +467,7 @@ namespace System.Management.Automation.Remoting
                 }
             }
 
-            // Its possible that all operations are completed at this point
+            // It's possible that all operations are completed at this point
             // and submit is complete. So raise event
             RaiseThrottleManagerEvents();
 
@@ -600,7 +600,7 @@ namespace System.Management.Automation.Remoting
         /// <summary>
         /// Dispose method of IDisposable. Any cmdlet that uses
         /// the throttle manager needs to call this method from its
-        /// Dipose method
+        /// Dispose method
         /// </summary>
         public void Dispose()
         {

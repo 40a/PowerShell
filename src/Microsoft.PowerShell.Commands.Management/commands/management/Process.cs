@@ -478,7 +478,7 @@ namespace Microsoft.PowerShell.Commands
     /// This class implements the get-process command
     /// </summary>
     [Cmdlet(VerbsCommon.Get, "Process", DefaultParameterSetName = NameParameterSet,
-        HelpUri = "http://go.microsoft.com/fwlink/?LinkID=113324", RemotingCapability = RemotingCapability.SupportedByCommand)]
+        HelpUri = "https://go.microsoft.com/fwlink/?LinkID=113324", RemotingCapability = RemotingCapability.SupportedByCommand)]
     [OutputType(typeof(ProcessModule), typeof(FileVersionInfo), typeof(Process))]
     public sealed class GetProcessCommand : ProcessBaseCommand
     {
@@ -653,11 +653,11 @@ namespace Microsoft.PowerShell.Commands
                     }
                     catch (InvalidOperationException exception)
                     {
-                        WriteNonTerminatingError(process, exception, ProcessResources.CouldnotEnumerateModuleFileVer, "CouldnotEnumerateModuleFileVer", ErrorCategory.PermissionDenied);
+                        WriteNonTerminatingError(process, exception, ProcessResources.CouldNotEnumerateModuleFileVer, "CouldNotEnumerateModuleFileVer", ErrorCategory.PermissionDenied);
                     }
                     catch (ArgumentException exception)
                     {
-                        WriteNonTerminatingError(process, exception, ProcessResources.CouldnotEnumerateModuleFileVer, "CouldnotEnumerateModuleFileVer", ErrorCategory.PermissionDenied);
+                        WriteNonTerminatingError(process, exception, ProcessResources.CouldNotEnumerateModuleFileVer, "CouldNotEnumerateModuleFileVer", ErrorCategory.PermissionDenied);
                     }
                     catch (Win32Exception exception)
                     {
@@ -669,18 +669,18 @@ namespace Microsoft.PowerShell.Commands
                             }
                             else
                             {
-                                WriteNonTerminatingError(process, exception, ProcessResources.CouldnotEnumerateModuleFileVer, "CouldnotEnumerateModuleFileVer", ErrorCategory.PermissionDenied);
+                                WriteNonTerminatingError(process, exception, ProcessResources.CouldNotEnumerateModuleFileVer, "CouldNotEnumerateModuleFileVer", ErrorCategory.PermissionDenied);
                             }
                         }
                         catch (Win32Exception ex)
                         {
-                            WriteNonTerminatingError(process, ex, ProcessResources.CouldnotEnumerateModuleFileVer, "CouldnotEnumerateModuleFileVer", ErrorCategory.PermissionDenied);
+                            WriteNonTerminatingError(process, ex, ProcessResources.CouldNotEnumerateModuleFileVer, "CouldNotEnumerateModuleFileVer", ErrorCategory.PermissionDenied);
                         }
                     }
                     catch (Exception exception)
                     {
                         CommandsCommon.CheckForSevereException(this, exception);
-                        WriteNonTerminatingError(process, exception, ProcessResources.CouldnotEnumerateModuleFileVer, "CouldnotEnumerateModuleFileVer", ErrorCategory.PermissionDenied);
+                        WriteNonTerminatingError(process, exception, ProcessResources.CouldNotEnumerateModuleFileVer, "CouldNotEnumerateModuleFileVer", ErrorCategory.PermissionDenied);
                     }
                 }
                 else if (Module.IsPresent)
@@ -700,18 +700,18 @@ namespace Microsoft.PowerShell.Commands
                             }
                             else
                             {
-                                WriteNonTerminatingError(process, exception, ProcessResources.CouldnotEnumerateModules, "CouldnotEnumerateModules", ErrorCategory.PermissionDenied);
+                                WriteNonTerminatingError(process, exception, ProcessResources.CouldNotEnumerateModules, "CouldNotEnumerateModules", ErrorCategory.PermissionDenied);
                             }
                         }
                         catch (Win32Exception ex)
                         {
-                            WriteNonTerminatingError(process, ex, ProcessResources.CouldnotEnumerateModules, "CouldnotEnumerateModules", ErrorCategory.PermissionDenied);
+                            WriteNonTerminatingError(process, ex, ProcessResources.CouldNotEnumerateModules, "CouldNotEnumerateModules", ErrorCategory.PermissionDenied);
                         }
                     }
                     catch (Exception exception)
                     {
                         CommandsCommon.CheckForSevereException(this, exception);
-                        WriteNonTerminatingError(process, exception, ProcessResources.CouldnotEnumerateModules, "CouldnotEnumerateModules", ErrorCategory.PermissionDenied);
+                        WriteNonTerminatingError(process, exception, ProcessResources.CouldNotEnumerateModules, "CouldNotEnumerateModules", ErrorCategory.PermissionDenied);
                     }
                 }
                 else if (FileVersionInfo.IsPresent)
@@ -723,11 +723,11 @@ namespace Microsoft.PowerShell.Commands
                     }
                     catch (InvalidOperationException exception)
                     {
-                        WriteNonTerminatingError(process, exception, ProcessResources.CouldnotEnumerateFileVer, "CouldnotEnumerateFileVer", ErrorCategory.PermissionDenied);
+                        WriteNonTerminatingError(process, exception, ProcessResources.CouldNotEnumerateFileVer, "CouldNotEnumerateFileVer", ErrorCategory.PermissionDenied);
                     }
                     catch (ArgumentException exception)
                     {
-                        WriteNonTerminatingError(process, exception, ProcessResources.CouldnotEnumerateFileVer, "CouldnotEnumerateFileVer", ErrorCategory.PermissionDenied);
+                        WriteNonTerminatingError(process, exception, ProcessResources.CouldNotEnumerateFileVer, "CouldNotEnumerateFileVer", ErrorCategory.PermissionDenied);
                     }
                     catch (Win32Exception exception)
                     {
@@ -739,18 +739,18 @@ namespace Microsoft.PowerShell.Commands
                             }
                             else
                             {
-                                WriteNonTerminatingError(process, exception, ProcessResources.CouldnotEnumerateFileVer, "CouldnotEnumerateFileVer", ErrorCategory.PermissionDenied);
+                                WriteNonTerminatingError(process, exception, ProcessResources.CouldNotEnumerateFileVer, "CouldNotEnumerateFileVer", ErrorCategory.PermissionDenied);
                             }
                         }
                         catch (Win32Exception ex)
                         {
-                            WriteNonTerminatingError(process, ex, ProcessResources.CouldnotEnumerateFileVer, "CouldnotEnumerateFileVer", ErrorCategory.PermissionDenied);
+                            WriteNonTerminatingError(process, ex, ProcessResources.CouldNotEnumerateFileVer, "CouldNotEnumerateFileVer", ErrorCategory.PermissionDenied);
                         }
                     }
                     catch (Exception exception)
                     {
                         CommandsCommon.CheckForSevereException(this, exception);
-                        WriteNonTerminatingError(process, exception, ProcessResources.CouldnotEnumerateFileVer, "CouldnotEnumerateFileVer", ErrorCategory.PermissionDenied);
+                        WriteNonTerminatingError(process, exception, ProcessResources.CouldNotEnumerateFileVer, "CouldNotEnumerateFileVer", ErrorCategory.PermissionDenied);
                     }
                 }
                 else
@@ -940,7 +940,7 @@ namespace Microsoft.PowerShell.Commands
     /// <summary>
     /// This class implements the Wait-process command
     /// </summary>
-    [Cmdlet(VerbsLifecycle.Wait, "Process", DefaultParameterSetName = "Name", HelpUri = "http://go.microsoft.com/fwlink/?LinkID=135277")]
+    [Cmdlet(VerbsLifecycle.Wait, "Process", DefaultParameterSetName = "Name", HelpUri = "https://go.microsoft.com/fwlink/?LinkID=135277")]
     public sealed class WaitProcessCommand : ProcessBaseCommand
     {
         #region Parameters
@@ -970,7 +970,7 @@ namespace Microsoft.PowerShell.Commands
         }
 
         /// <summary>
-        /// Name of the processes to wait on for termintation
+        /// Name of the processes to wait on for termination
         /// </summary>
         [Parameter(
             ParameterSetName = "Name",
@@ -1165,7 +1165,7 @@ namespace Microsoft.PowerShell.Commands
     /// </remarks>
     [Cmdlet(VerbsLifecycle.Stop, "Process",
         DefaultParameterSetName = "Id",
-        SupportsShouldProcess = true, HelpUri = "http://go.microsoft.com/fwlink/?LinkID=113412")]
+        SupportsShouldProcess = true, HelpUri = "https://go.microsoft.com/fwlink/?LinkID=113412")]
     [OutputType(typeof(Process))]
     public sealed class StopProcessCommand : ProcessBaseCommand
     {
@@ -1540,7 +1540,7 @@ namespace Microsoft.PowerShell.Commands
     /// <summary>
     /// This class implements the Debug-process command
     /// </summary>
-    [Cmdlet(VerbsDiagnostic.Debug, "Process", DefaultParameterSetName = "Name", SupportsShouldProcess = true, HelpUri = "http://go.microsoft.com/fwlink/?LinkID=135206")]
+    [Cmdlet(VerbsDiagnostic.Debug, "Process", DefaultParameterSetName = "Name", SupportsShouldProcess = true, HelpUri = "https://go.microsoft.com/fwlink/?LinkID=135206")]
     public sealed class DebugProcessCommand : ProcessBaseCommand
     {
         #region Parameters
@@ -1570,7 +1570,7 @@ namespace Microsoft.PowerShell.Commands
         }
 
         /// <summary>
-        /// Name of the processes to wait on for termintation
+        /// Name of the processes to wait on for termination
         /// </summary>
         [Parameter(
             ParameterSetName = "Name",
@@ -1709,7 +1709,7 @@ namespace Microsoft.PowerShell.Commands
     /// <summary>
     /// This class implements the Start-process command
     /// </summary>
-    [Cmdlet(VerbsLifecycle.Start, "Process", DefaultParameterSetName = "Default", HelpUri = "http://go.microsoft.com/fwlink/?LinkID=135261")]
+    [Cmdlet(VerbsLifecycle.Start, "Process", DefaultParameterSetName = "Default", HelpUri = "https://go.microsoft.com/fwlink/?LinkID=135261")]
     [OutputType(typeof(Process))]
     public sealed class StartProcessCommand : PSCmdlet, IDisposable
     {
@@ -1855,7 +1855,6 @@ namespace Microsoft.PowerShell.Commands
         }
         private string _redirectstandardoutput;
 
-#if !CORECLR
         /// <summary>
         /// Verb
         /// </summary>
@@ -1867,7 +1866,7 @@ namespace Microsoft.PowerShell.Commands
         [ValidateNotNullOrEmpty]
         public string Verb { get; set; }
 
-
+#if !CORECLR
         /// <summary>
         /// Window style of the process window
         /// </summary>
@@ -1922,6 +1921,14 @@ namespace Microsoft.PowerShell.Commands
         /// </summary>
         protected override void BeginProcessing()
         {
+#if CORECLR
+            if(this.ParameterSetName.Equals("UseShellExecute"))
+            {
+                String errorMessage = StringUtil.Format(ProcessResources.ParameterNotSupportedOnPSEdition, "-Verb", "Start-Process");
+                ErrorRecord er =  new ErrorRecord(new NotSupportedException(errorMessage), "NotSupportedException", ErrorCategory.NotImplemented, null);
+                ThrowTerminatingError(er);
+            }
+#endif
             //create an instance of the ProcessStartInfo Class
             ProcessStartInfo startInfo = new ProcessStartInfo();
             string message = String.Empty;
@@ -2712,7 +2719,7 @@ namespace Microsoft.PowerShell.Commands
         }
 
         /// <summary>
-        /// Start API assignes the process to the JobObject and starts monitoring 
+        /// Start API assigns the process to the JobObject and starts monitoring 
         /// the child processes hosted by the process created by Start-Process cmdlet.
         /// </summary>
         internal bool AssignProcessToJobObject(Process process)

@@ -15,7 +15,7 @@ namespace Microsoft.PowerShell.Commands
     /// A cmdlet to retrieve time zone information.
     /// </summary>
     [Cmdlet(VerbsCommon.Get, "TimeZone", DefaultParameterSetName = "Name",
-        HelpUri = "http://go.microsoft.com/fwlink/?LinkId=799468")]
+        HelpUri = "https://go.microsoft.com/fwlink/?LinkId=799468")]
     [Alias("gtz")]
     public class GetTimeZoneCommand : PSCmdlet
     {
@@ -132,7 +132,7 @@ namespace Microsoft.PowerShell.Commands
     [Cmdlet(VerbsCommon.Set, "TimeZone",
         SupportsShouldProcess = true,
         DefaultParameterSetName = "Name",
-        HelpUri = "http://go.microsoft.com/fwlink/?LinkId=799469")]
+        HelpUri = "https://go.microsoft.com/fwlink/?LinkId=799469")]
     [Alias("stz")]
     public class SetTimeZoneCommand : PSCmdlet
     {
@@ -722,7 +722,7 @@ namespace Microsoft.PowerShell.Commands
             /// PInvoke AdjustTokenPrivilege API
             /// </summary>
             /// <param name="TokenHandle"></param>
-            /// <param name="DisableAllPrivilegs"></param>
+            /// <param name="DisableAllPrivileges"></param>
             /// <param name="NewState"></param>
             /// <param name="BufferLength"></param>
             /// <param name="PreviousState"></param>
@@ -730,7 +730,7 @@ namespace Microsoft.PowerShell.Commands
             /// <returns></returns>
             [DllImport(AdjustTokenPrivilegesApiDllName, SetLastError = true, CharSet = CharSet.Unicode, BestFitMapping = false)]
             [return: MarshalAs(UnmanagedType.Bool)]
-            public static extern bool AdjustTokenPrivileges(IntPtr TokenHandle, bool DisableAllPrivilegs,
+            public static extern bool AdjustTokenPrivileges(IntPtr TokenHandle, bool DisableAllPrivileges,
                 ref TOKEN_PRIVILEGES NewState, int BufferLength, IntPtr PreviousState, IntPtr ReturnLength);
 
             /// <summary>

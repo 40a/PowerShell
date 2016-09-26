@@ -60,7 +60,7 @@ function ExportODataEndpointProxy
     VerifyMetadata $GlobalMetadata $AllowClobber.IsPresent $PSCmdlet $ProgressBarStatus
 
     # Get Uri Resource path key format. It can be either 'EmbeddedKey' or 'SeparateKey'. 
-    # If not provided, deault value will be set to 'EmbeddedKey'.
+    # If not provided, default value will be set to 'EmbeddedKey'.
     $UriResourcePathKeyFormat = 'EmbeddedKey'
     if ($CustomData -and $CustomData.ContainsKey("UriResourcePathKeyFormat"))
     {
@@ -159,7 +159,7 @@ function NormalizeNamespace
     {
         if ($NormalizedNamespaces.ContainsKey($MetadataNamespace))
         {
-            # It's possible we've already attemted to normalize that namespace. In that case we'll update normalized name.
+            # It's possible we've already attempted to normalize that namespace. In that case we'll update normalized name.
             $NormalizedNamespaces[$MetadataNamespace] = NormalizeNamespaceHelper $NormalizedNamespaces[$MetadataNamespace] $doesNamespaceContainsInvalidChars $DoesNamespaceConflictsWithClassName
         }
         else
@@ -214,7 +214,7 @@ function NormalizeNamespaceCollisionWithClassName
 
 #########################################################
 # This helper method is used by functions, 
-# writing directly to CDXML files or to .Net namespace/class definitions CompplexTypes file
+# writing directly to CDXML files or to .Net namespace/class definitions ComplexTypes file
 #########################################################
 function GetNamespace
 {
@@ -266,7 +266,7 @@ function NormalizeNamespaceHelper
 
     # For example, following namespace: Service.1.0.0
     # Will change to: Service_1_0_0
-    # Ns postfix in Namespace name will allow to diffirintiate between this namespace 
+    # Ns postfix in Namespace name will allow to differentiate between this namespace 
     # and a colliding type name from different namespace
     $updatedNs = $Namespace
     if ($DoesNamespaceContainsInvalidChars)
@@ -1230,8 +1230,8 @@ function GenerateClientSideProxyModule
     Write-Verbose ($LocalizedData.VerboseSavingModule -f $OutputModule)
     
     # Save ComplexTypes for all metadata schemas in single file
-    $typeDefinationFileName = "ComplexTypeDefinitions.psm1"
-    $complexTypeMapping = GenerateComplexTypeDefinition $GlobalMetadata $OutputModule $typeDefinationFileName $NormalizedNamespaces
+    $typeDefinitionFileName = "ComplexTypeDefinitions.psm1"
+    $complexTypeMapping = GenerateComplexTypeDefinition $GlobalMetadata $OutputModule $typeDefinitionFileName $NormalizedNamespaces
 
     ProgressBarHelper "Export-ODataEndpointProxy" $progressBarStatus 20 20 1  1
 
@@ -1273,11 +1273,11 @@ function GenerateClientSideProxyModule
 
     if ($actions.Count -gt 0 -or $functions.Count -gt 0)
     {
-        $additionalModules = @($typeDefinationFileName, 'ServiceActions.cdxml')
+        $additionalModules = @($typeDefinitionFileName, 'ServiceActions.cdxml')
     }
     else
     {
-        $additionalModules = @($typeDefinationFileName)
+        $additionalModules = @($typeDefinitionFileName)
     }
 
     GenerateModuleManifest $GlobalMetadata $OutputModule\$moduleManifestName $additionalModules $resourceNameMappings $progressBarStatus
@@ -1300,7 +1300,7 @@ function SaveCDXML
         [string] $CmdletAdapter,
         [Hashtable] $resourceNameMappings,
         [Hashtable] $CustomData,
-        [Hashtable] $compexTypeMapping,
+        [Hashtable] $complexTypeMapping,
         [string] $UriResourcePathKeyFormat,
         $normalizedNamespaces
     )
@@ -1335,7 +1335,7 @@ function SaveCDXML
     
     $navigationProperties = $EntitySet.Type.NavigationProperties
 
-    SaveCDXMLInstanceCmdlets $xmlWriter $Metadata $GlobalMetadata $EntitySet.Type $keys $navigationProperties $CmdletAdapter $compexTypeMapping $false
+    SaveCDXMLInstanceCmdlets $xmlWriter $Metadata $GlobalMetadata $EntitySet.Type $keys $navigationProperties $CmdletAdapter $complexTypeMapping $false
 
     $nonKeyProperties = $EntitySet.Type.EntityProperties | ? { -not $_.isKey }
     $nullableProperties = $nonKeyProperties | ? { $_.isNullable }
@@ -1345,11 +1345,11 @@ function SaveCDXML
 
         $keyProperties = $keys
 
-        SaveCDXMLNewCmdlet $xmlWriter $Metadata $GlobalMetadata $keyProperties $nonNullableProperties $nullableProperties $navigationProperties $CmdletAdapter $compexTypeMapping
+        SaveCDXMLNewCmdlet $xmlWriter $Metadata $GlobalMetadata $keyProperties $nonNullableProperties $nullableProperties $navigationProperties $CmdletAdapter $complexTypeMapping
         
-        GenerateSetProxyCmdlet $xmlWriter $keyProperties $nonKeyProperties $compexTypeMapping
+        GenerateSetProxyCmdlet $xmlWriter $keyProperties $nonKeyProperties $complexTypeMapping
 
-        SaveCDXMLRemoveCmdlet $xmlWriter $Metadata $GlobalMetadata $keyProperties $navigationProperties $CmdletAdapter $compexTypeMapping
+        SaveCDXMLRemoveCmdlet $xmlWriter $Metadata $GlobalMetadata $keyProperties $navigationProperties $CmdletAdapter $complexTypeMapping
 
         $entityActions = $Metadata.Actions | Where-Object { ($_.EntitySet.Namespace -eq $EntitySet.Namespace) -and ($_.EntitySet.Name -eq $EntitySet.Name) }
 
@@ -1456,7 +1456,7 @@ function SaveCDXMLSingletonCmdlets
         [string] $CmdletAdapter,
         [Hashtable] $resourceNameMappings,
         [Hashtable] $CustomData,
-        [Hashtable] $compexTypeMapping,
+        [Hashtable] $complexTypeMapping,
         $normalizedNamespaces
     )
 
@@ -1508,7 +1508,7 @@ function SaveCDXMLSingletonCmdlets
 
 		$navigationProperties = $associatedEntityType.NavigationProperties
 
-		SaveCDXMLInstanceCmdlets $xmlWriter $Metadata $GlobalMetadata $associatedEntityType $keys $navigationProperties $CmdletAdapter $compexTypeMapping $true 
+		SaveCDXMLInstanceCmdlets $xmlWriter $Metadata $GlobalMetadata $associatedEntityType $keys $navigationProperties $CmdletAdapter $complexTypeMapping $true 
 
 		$nonKeyProperties = $associatedEntityType.EntityProperties | ? { -not $_.isKey }
 		$nullableProperties = $nonKeyProperties | ? { $_.isNullable }
@@ -1518,7 +1518,7 @@ function SaveCDXMLSingletonCmdlets
 
 			$keyProperties = $keys
 
-			GenerateSetProxyCmdlet $xmlWriter $keyProperties $nonKeyProperties $compexTypeMapping
+			GenerateSetProxyCmdlet $xmlWriter $keyProperties $nonKeyProperties $complexTypeMapping
 
 			$entityActions = $Metadata.Actions | Where-Object { $_.EntitySet.Name -eq $associatedEntityType.Name }
 
@@ -1621,7 +1621,7 @@ function SaveCDXMLInstanceCmdlets
             # to be used by GET cmdlet
             if (($keys.Length -gt 0) -or ($navigationProperties.Length -gt 0))
             { 
-                $querableNavProperties = @{} 
+                $queryableNavProperties = @{} 
                 
                 if ($isSingleton -eq $false)
                 {
@@ -1636,16 +1636,16 @@ function SaveCDXMLInstanceCmdlets
                             # Otherwise the Uri for associated navigation property won't be valid
                             if ($associatedTypeKeyProperties.Length -gt 0 -and (ShouldBeAssociatedParameter $GlobalMetadata $EntityType $associatedType $isSingleton))
                             {                            
-                                $querableNavProperties.Add($navProperty, $associatedTypeKeyProperties)
+                                $queryableNavProperties.Add($navProperty, $associatedTypeKeyProperties)
                             }
                         }
                     }
                 }
                 
                 $defaultCmdletParameterSet = 'Default'
-                if ($isSingleton -eq $true -and $querableNavProperties.Count -gt 0)
+                if ($isSingleton -eq $true -and $queryableNavProperties.Count -gt 0)
                 {
-                    foreach($item in $querableNavProperties.GetEnumerator()) 
+                    foreach($item in $queryableNavProperties.GetEnumerator()) 
                     {
                         $defaultCmdletParameterSet = $item.Key.Name
                         break
@@ -1683,9 +1683,9 @@ function SaveCDXMLInstanceCmdlets
                         }
                 }
     
-                if ($querableNavProperties.Count -gt 0)
+                if ($queryableNavProperties.Count -gt 0)
                 {
-                    foreach($item in $querableNavProperties.GetEnumerator()) 
+                    foreach($item in $queryableNavProperties.GetEnumerator()) 
                     {
                         $xmlWriter.WriteStartElement('Property')
                         $xmlWriter.WriteAttributeString('PropertyName', $item.Key.Name + ':' + $item.Value.Name + ':Key')
@@ -1774,7 +1774,7 @@ function SaveCDXMLInstanceCmdlets
 }
 
 # Helper Method
-# Returns true if navigation property of $AssociatedType has coresponding EntitySet or Singleton
+# Returns true if navigation property of $AssociatedType has corresponding EntitySet or Singleton
 # If yes, then it should become an associated parameter in CDXML
 function ShouldBeAssociatedParameter
 {
@@ -1940,7 +1940,7 @@ function SaveCDXMLRemoveCmdlet
             
         $xmlWriter.WriteEndElement()
 
-        $navigationPrperties | ? { $_ -ne $null } | % {
+        $navigationProperties | ? { $_ -ne $null } | % {
 
             $associatedType = GetAssociatedType $Metadata $GlobalMetadata $_
             $associatedEntitySet = GetEntitySetForEntityType $Metadata $associatedType
@@ -2292,7 +2292,7 @@ function SaveServiceActionsCDXML
 # to generate a wrapper module manifest file. The
 # generated module manifest is persisted to the disk at
 # the specified OutputModule path. When the module 
-# manifest is imported, the following comands will 
+# manifest is imported, the following commands will 
 # be imported:
 # 1. Get, Set, New & Remove proxy cmdlets for entity 
 #    sets and singletons.
@@ -2350,8 +2350,8 @@ function GenerateModuleManifest
 }
 
 #########################################################
-# This is a helper function used to generate comlplex 
-# type defination from the metadata.
+# This is a helper function used to generate complex 
+# type definition from the metadata.
 #########################################################
 function GenerateComplexTypeDefinition 
 {
@@ -2376,7 +2376,7 @@ using System.ComponentModel;
 
 "@
     # We are currently generating classes for EntityType & ComplexType 
-    # defination exposed in the metadata.
+    # definition exposed in the metadata.
     
     $complexTypeMapping = @{}
 
